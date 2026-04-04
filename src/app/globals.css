@@ -1,0 +1,136 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@layer base {
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: #F5F6F7;
+    color: #2C2F30;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background-color: #7FF3BE;
+    color: #00452E;
+  }
+}
+
+@layer components {
+  /* === Design System Components === */
+  .glass-nav {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background-color: rgba(255, 255, 255, 0.85);
+  }
+  .cta-gradient {
+    background: linear-gradient(135deg, #006948 0%, #005B3E 100%);
+  }
+  .premium-shadow {
+    box-shadow: 0 12px 32px -4px rgba(44, 47, 48, 0.08);
+  }
+  .premium-shadow-md {
+    box-shadow: 0 8px 24px -4px rgba(44, 47, 48, 0.10);
+  }
+  .inner-pressed {
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+  }
+  .tonal-shift {
+    background: linear-gradient(180deg, #F5F6F7 0%, #EFF1F2 100%);
+  }
+
+  /* === Typography Scale === */
+  .display-lg {
+    font-size: 3.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .display-md {
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  .headline-lg {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+  .headline-md {
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+  .title-lg {
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+  .title-md {
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+  .body-lg {
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+  .body-md {
+    font-size: 0.9375rem;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+  .label-lg {
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .label-md {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .label-sm {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* === Patient Avatar Halo === */
+  .avatar-halo {
+    position: relative;
+    display: inline-flex;
+  }
+  .avatar-halo::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    background-color: #7FF3BE;
+    opacity: 0.25;
+    transform: scale(1.1);
+    transition: transform 0.3s ease;
+  }
+  .group:hover .avatar-halo::before {
+    transform: scale(1.2);
+  }
+
+  /* === Scroll Behavior === */
+  .chat-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #DADDDF transparent;
+  }
+  .chat-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+  .chat-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .chat-scroll::-webkit-scrollbar-thumb {
+    background-color: #DADDDF;
+    border-radius: 4px;
+  }
+}

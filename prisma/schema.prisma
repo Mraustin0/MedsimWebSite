@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Users ───────────────────────────────────────────────
+model User {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  role      Role      @default(STUDENT)
+  avatarUrl String?
+  sessions  Session[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+enum Role {
+  STUDENT
+  INSTRUCTOR
+}
+
+// ─── Sessions ────────────────────────────────────────────
+model Session {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scenarioId      String
+  messages        Message[]
+  feedback        Feedback?
+  durationSeconds Int?
+  startedAt       DateTime  @default(now())
+  endedAt         DateTime?
+}
+
+// ─── Messages ────────────────────────────────────────────
+model Message {
+  id        String   @id @default(cuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role      MsgRole
+  content   String
+  createdAt DateTime @default(now())
+
+  @@index([sessionId])
+}
+
+enum MsgRole {
+  USER
+  ASSISTANT
+}
+
+// ─── Feedback ────────────────────────────────────────────
+model Feedback {
+  id                String  @id @default(cuid())
+  sessionId         String  @unique
+  session           Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  scoreOnset        Int
+  scoreLocation     Int
+  scoreDuration     Int
+  scoreCharacter    Int
+  scoreAggravating  Int
+  scoreRelieving    Int
+  scoreTiming       Int
+  scoreSeverity     Int
+  scoreOverall      Int
+  good              String[] // สิ่งที่ทำได้ดี
+  missed            String[] // สิ่งที่พลาด
+  tips              String[] // คำแนะนำ
+  totalQuestions    Int
+  oldcartsCompleted Int
+  createdAt         DateTime @default(now())
+}
