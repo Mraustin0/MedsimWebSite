@@ -61,19 +61,4 @@ main        ← production
 develop     ← รวม features ก่อน merge
 feat/*      ← feature branches
 fix/*       ← bug fixes
-```
 
-## Scenarios
-| ID | ผู้ป่วย | Chief Complaint | Difficulty |
-|---|---|---|---|
-| chest-pain-01 | นายสมชาย มีสุข 52ปี | เจ็บหน้าอก | ยาก |
-| headache-01 | นางสาววิไลลักษณ์ 28ปี | ปวดศีรษะ | ง่าย |
-| abdominal-01 | นายวิชัย พงษ์ดี 65ปี | ปวดท้อง | ปานกลาง |
-
-## เพิ่ม Scenario ใหม่
-เพิ่มใน `src/lib/scenarios.ts` ตาม interface `Scenario`
-
-## Team
-- **Dev 1 (Frontend)**: components/, app/dashboard, app/session UI
-- **Dev 2 (Backend)**: app/api/, lib/anthropic.ts, lib/scenarios.ts
-# MedsimWebSite
