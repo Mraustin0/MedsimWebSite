@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Scenario } from '@/types'
 import { cn } from '@/components/ui/cn'
@@ -9,7 +9,7 @@ import { useSession } from '@/hooks/useSession'
 import { useTimer } from '@/hooks/useTimer'
 import { useOldcarts } from '@/hooks/useOldcarts'
 
-const SESSION_DURATION = 10 * 60 // 10 minutes
+const SESSION_DURATION = 10 * 60
 
 interface Props {
   scenario: Scenario
@@ -19,6 +19,7 @@ export default function SessionClient({ scenario }: Props) {
   const router = useRouter()
   const chatRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const [showPatientInfo, setShowPatientInfo] = useState(false)
 
   const { oldcarts, checkedCount, detectFromMessage, toggle, reset: resetOldcarts } = useOldcarts()
 
@@ -36,33 +37,18 @@ export default function SessionClient({ scenario }: Props) {
     onTimeUp: endSession,
   })
 
-  // Auto-scroll on new messages
   useEffect(() => {
     chatRef.current?.scrollTo({ top: chatRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages, isLoading])
 
-  // Init first AI message
   useEffect(() => {
     initSession()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleEnd = () => {
-    stopTimer()
-    endSession()
-  }
-
-  const handleRetry = () => {
-    resetSession()
-    resetOldcarts()
-    resetTimer()
-    initSession()
-  }
-
+  const handleEnd = () => { stopTimer(); endSession() }
+  const handleRetry = () => { resetSession(); resetOldcarts(); resetTimer(); initSession() }
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      sendMessage()
-    }
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() }
   }
 
   if (feedback) {
@@ -80,7 +66,7 @@ export default function SessionClient({ scenario }: Props) {
 
   return (
     <div className="min-h-screen bg-surface flex">
-      {/* LEFT PANEL */}
+      {/* ===== Desktop Left Panel ===== */}
       <aside className="hidden lg:flex w-72 xl:w-80 flex-shrink-0 flex-col gap-4 p-5 bg-surface-container-low border-r border-outline-variant/10 fixed top-0 left-0 h-full overflow-y-auto z-30">
         {/* Patient Card */}
         <div className="bg-surface-container-lowest rounded-2xl premium-shadow p-5 mt-16">
@@ -165,10 +151,47 @@ export default function SessionClient({ scenario }: Props) {
         </div>
       </aside>
 
-      {/* MAIN AREA */}
+      {/* ===== MAIN CHAT AREA ===== */}
       <div className="flex flex-col flex-1 lg:ml-72 xl:ml-80 min-h-screen">
-        {/* Top bar */}
-        <header className="glass-nav sticky top-0 z-20 flex items-center justify-between px-5 py-3 border-b border-outline-variant/10">
+
+        {/* === Mobile Top Bar === */}
+        <header className="lg:hidden glass-nav sticky top-0 z-20 flex items-center justify-between px-4 py-3 border-b border-outline-variant/10">
+          <div className="flex items-center gap-3">
+            <div className="avatar-halo">
+              <div className="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-xl relative z-10">
+                {scenario.gender === 'male' ? '👨' : '👩'}
+              </div>
+            </div>
+            <div>
+              <p className="text-sm font-bold text-on-surface">{scenario.name}</p>
+              <p className="text-[10px] uppercase tracking-wider text-on-surface-variant font-semibold">
+                {scenario.chiefComplaint}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className={cn(
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold',
+              secondsLeft <= 60
+                ? 'bg-error-container/20 text-error'
+                : secondsLeft <= 180
+                ? 'bg-amber-100 text-amber-700'
+                : 'bg-surface-container text-on-surface'
+            )}>
+              <span>⏱</span>
+              <span className="font-mono">{formatTime(secondsLeft)}</span>
+            </div>
+            <button
+              onClick={handleEnd}
+              className="p-2 text-error hover:bg-error-container/20 rounded-full transition-all"
+            >
+              ✕
+            </button>
+          </div>
+        </header>
+
+        {/* === Desktop Top Bar === */}
+        <header className="hidden lg:flex glass-nav sticky top-0 z-20 items-center justify-between px-5 py-3 border-b border-outline-variant/10">
           <div className="flex items-center gap-2 text-sm text-on-surface-variant">
             <a href="/dashboard" className="hover:text-primary transition-colors">Dashboard</a>
             <span>/</span>
@@ -184,24 +207,33 @@ export default function SessionClient({ scenario }: Props) {
           </button>
         </header>
 
-        {/* Chat area */}
-        <div ref={chatRef} className="flex-1 overflow-y-auto chat-scroll p-5 xl:p-8 flex flex-col gap-4">
+        {/* === Chat messages === */}
+        <div ref={chatRef} className="flex-1 overflow-y-auto chat-scroll p-4 lg:p-5 xl:p-8 flex flex-col gap-3 lg:gap-4">
+          {/* Mobile: simulation started badge */}
+          {messages.length > 0 && (
+            <div className="lg:hidden flex justify-center mb-2">
+              <span className="px-4 py-1.5 bg-surface-container text-on-surface-variant text-[10px] uppercase tracking-wider font-semibold rounded-full">
+                Simulation Started
+              </span>
+            </div>
+          )}
+
           {messages.map((msg) => (
-            <div key={msg.id} className={cn('flex gap-3', msg.role === 'user' ? 'justify-end' : 'justify-start')}>
+            <div key={msg.id} className={cn('flex gap-2 lg:gap-3', msg.role === 'user' ? 'justify-end' : 'justify-start')}>
               {msg.role === 'assistant' && (
-                <div className="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-sm flex-shrink-0 mt-5">
+                <div className="w-8 h-8 rounded-full bg-surface-container-low items-center justify-center text-sm flex-shrink-0 mt-5 hidden lg:!flex">
                   {scenario.gender === 'male' ? '👨' : '👩'}
                 </div>
               )}
-              <div className={cn('flex flex-col gap-1 max-w-[72%]', msg.role === 'user' ? 'items-end' : 'items-start')}>
+              <div className={cn('flex flex-col gap-1 max-w-[85%] lg:max-w-[72%]', msg.role === 'user' ? 'items-end' : 'items-start')}>
                 <p className="label-sm text-on-surface-variant px-1">
-                  {msg.role === 'assistant' ? scenario.name : 'คุณ'}
+                  {msg.role === 'assistant' ? 'Patient' : 'You (Student)'}
                 </p>
                 <div className={cn(
                   'px-4 py-3 rounded-2xl text-sm leading-relaxed',
                   msg.role === 'assistant'
-                    ? 'bg-surface-container-low text-on-surface rounded-bl-sm border border-outline-variant/15'
-                    : 'cta-gradient text-on-primary rounded-br-sm inner-pressed'
+                    ? 'bg-secondary-container/30 text-on-surface rounded-bl-sm'
+                    : 'cta-gradient text-on-primary rounded-br-sm'
                 )}>
                   {msg.content}
                 </div>
@@ -212,11 +244,11 @@ export default function SessionClient({ scenario }: Props) {
             </div>
           ))}
           {isLoading && (
-            <div className="flex gap-3 justify-start">
-              <div className="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-sm flex-shrink-0">
+            <div className="flex gap-2 lg:gap-3 justify-start">
+              <div className="w-8 h-8 rounded-full bg-surface-container-low items-center justify-center text-sm flex-shrink-0 hidden lg:!flex">
                 {scenario.gender === 'male' ? '👨' : '👩'}
               </div>
-              <div className="bg-surface-container-low border border-outline-variant/15 rounded-2xl rounded-bl-sm px-4 py-3">
+              <div className="bg-secondary-container/30 rounded-2xl rounded-bl-sm px-4 py-3">
                 <div className="flex gap-1 items-center h-4">
                   {[0, 1, 2].map((i) => (
                     <div key={i} className="w-1.5 h-1.5 rounded-full bg-on-surface-variant/40 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
@@ -227,10 +259,71 @@ export default function SessionClient({ scenario }: Props) {
           )}
         </div>
 
-        {/* Input zone */}
-        <div className="sticky bottom-0 bg-surface/95 backdrop-blur-sm border-t border-outline-variant/10 p-4">
+        {/* === Input zone === */}
+        <div className="sticky bottom-0 bg-surface/95 backdrop-blur-sm border-t border-outline-variant/10 p-3 lg:p-4">
+          {/* Mobile: Patient Info button + OLDCARTS quick view */}
+          <div className="lg:hidden mb-2">
+            <div className="flex gap-2 overflow-x-auto scrollbar-none pb-2">
+              <button
+                onClick={() => setShowPatientInfo(!showPatientInfo)}
+                className={cn(
+                  'flex-shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-bold transition-all',
+                  showPatientInfo
+                    ? 'cta-gradient text-on-primary'
+                    : 'bg-surface-container-lowest border border-outline-variant/20 text-on-surface'
+                )}
+              >
+                <span>🏥</span>
+                <span>Patient Info</span>
+              </button>
+              <span className={cn(
+                'flex-shrink-0 px-3 py-2 rounded-full text-xs font-bold',
+                checkedCount >= 6 ? 'bg-primary-container text-on-primary-container' : 'bg-surface-container text-on-surface-variant'
+              )}>
+                OLDCARTS {checkedCount}/8
+              </span>
+            </div>
+          </div>
+
+          {/* Mobile: Patient info panel (collapsible) */}
+          {showPatientInfo && (
+            <div className="lg:hidden mb-3 bg-surface-container-lowest rounded-xl p-4 border border-outline-variant/15 animate-fade-in">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-xl">
+                  {scenario.gender === 'male' ? '👨' : '👩'}
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-on-surface">{scenario.name} ({scenario.age} ปี)</p>
+                  <p className="text-xs text-on-surface-variant">{scenario.chiefComplaint}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                {oldcarts.map((item) => (
+                  <button
+                    key={item.key}
+                    onClick={() => toggle(item.key)}
+                    className={cn(
+                      'flex items-center gap-2 text-left text-xs p-2 rounded-lg transition-all',
+                      item.checked ? 'text-primary bg-primary-container/20' : 'text-on-surface-variant'
+                    )}
+                  >
+                    <span className={cn(
+                      'w-3.5 h-3.5 rounded flex items-center justify-center text-[10px] flex-shrink-0',
+                      item.checked ? 'bg-primary text-on-primary' : 'border border-outline-variant/50'
+                    )}>
+                      {item.checked ? '✓' : ''}
+                    </span>
+                    <span className={cn(item.checked && 'line-through opacity-60')}>
+                      {item.key.charAt(0).toUpperCase() + item.key.slice(1)}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Hints */}
-          <div className="flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-none">
+          <div className="flex gap-2 overflow-x-auto pb-2 mb-2 lg:mb-3 scrollbar-none">
             {hints.map((hint) => (
               <button
                 key={hint}
@@ -241,6 +334,7 @@ export default function SessionClient({ scenario }: Props) {
               </button>
             ))}
           </div>
+
           {/* Input row */}
           <div className="flex gap-2 items-end">
             <textarea
@@ -249,7 +343,7 @@ export default function SessionClient({ scenario }: Props) {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={isLoading}
-              placeholder="พิมพ์คำถามเพื่อซักประวัติ... (Enter เพื่อส่ง)"
+              placeholder="พิมพ์คำถามเพื่อซักประวัติ..."
               rows={1}
               className="flex-1 resize-none px-4 py-3 bg-surface-container-lowest border border-outline-variant/15 rounded-xl text-sm text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary/30 focus:ring-1 focus:ring-primary/20 transition-all disabled:opacity-50"
               style={{ maxHeight: '96px' }}
