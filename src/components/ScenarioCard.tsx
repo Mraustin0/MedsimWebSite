@@ -45,8 +45,8 @@ export default function ScenarioCard({ scenario }: Props) {
         {/* Top row: avatar + difficulty */}
         <div className="flex justify-between items-start mb-6">
           <div className="relative avatar-halo">
-            <div className="w-16 h-16 rounded-full bg-surface-container-low flex items-center justify-center text-3xl relative z-10">
-              {avatarEmoji[scenario.gender]}
+            <div className="w-16 h-16 rounded-full bg-surface-container-low flex items-center justify-center text-3xl relative z-10 text-on-surface-variant">
+              <span className="material-symbols-outlined !text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
             </div>
           </div>
           <span className={cn('px-3 py-1 text-[10px] uppercase font-bold tracking-widest rounded-full', diff.bg, diff.text)}>

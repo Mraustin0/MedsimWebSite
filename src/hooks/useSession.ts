@@ -24,14 +24,26 @@ export function useSession({ scenario, onMessageSent }: UseSessionOptions) {
   const [sessionEnded, setSessionEnded] = useState(false)
   const [feedback, setFeedback] = useState<Feedback | null>(null)
   const startTimeRef = useRef<number>(Date.now())
+  const dbSessionIdRef = useRef<string | null>(null)
 
   const initSession = useCallback(async () => {
     setIsLoading(true)
     try {
+      // Create session in DB
+      const sessionRes = await fetch('/api/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scenarioId: scenario.id }),
+      })
+      const sessionData = await sessionRes.json()
+      dbSessionIdRef.current = sessionData.sessionId || null
+
+      // Get first AI message
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          sessionId: dbSessionIdRef.current,
           message: 'เริ่ม session โดยแนะนำตัวและบอกอาการหลักที่มาโรงพยาบาลวันนี้',
           history: [],
           systemPrompt: scenario.systemPrompt,
@@ -50,7 +62,7 @@ export function useSession({ scenario, onMessageSent }: UseSessionOptions) {
     } finally {
       setIsLoading(false)
     }
-  }, [scenario.systemPrompt])
+  }, [scenario.id, scenario.systemPrompt])
 
   const sendMessage = useCallback(async () => {
     if (!input.trim() || isLoading || sessionEnded) return
@@ -73,6 +85,7 @@ export function useSession({ scenario, onMessageSent }: UseSessionOptions) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          sessionId: dbSessionIdRef.current,
           message: text,
           history,
           systemPrompt: scenario.systemPrompt,
@@ -107,6 +120,7 @@ export function useSession({ scenario, onMessageSent }: UseSessionOptions) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          sessionId: dbSessionIdRef.current,
           transcript,
           scenarioId: scenario.chiefComplaint,
           durationSeconds: Math.round((Date.now() - startTimeRef.current) / 1000),
@@ -124,6 +138,7 @@ export function useSession({ scenario, onMessageSent }: UseSessionOptions) {
     setSessionEnded(false)
     setMessages([])
     startTimeRef.current = Date.now()
+    dbSessionIdRef.current = null
   }, [])
 
   const userQuestionCount = messages.filter((m) => m.role === 'user').length

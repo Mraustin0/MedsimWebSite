@@ -2,6 +2,7 @@
 
 import { Feedback, Scenario } from '@/types'
 import { cn } from '@/components/ui/cn'
+import { useRouter } from 'next/navigation'
 
 interface Props {
   feedback: Feedback
@@ -12,172 +13,170 @@ interface Props {
   onBack: () => void
 }
 
-function ScoreRing({ score }: { score: number }) {
-  const r = 40
-  const circ = 2 * Math.PI * r
-  const offset = circ - (circ * score) / 100
-  const color = score >= 80 ? '#006948' : score >= 60 ? '#006575' : '#B31B25'
-  return (
-    <div className="relative w-24 h-24">
-      <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-        <circle cx="50" cy="50" r={r} fill="none" stroke="rgba(171,173,174,0.2)" strokeWidth="6"/>
-        <circle cx="50" cy="50" r={r} fill="none" stroke={color}
-          strokeWidth="6" strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round"/>
-      </svg>
-      <span className="absolute inset-0 flex items-center justify-center text-xl font-black" style={{ color }}>
-        {score}
-      </span>
-    </div>
-  )
-}
-
-function ScoreBar({ label, value }: { label: string; value: number }) {
-  const color = value >= 80 ? 'bg-primary' : value >= 60 ? 'bg-tertiary' : 'bg-error'
-  return (
-    <div className="flex items-center gap-3">
-      <span className="text-xs text-on-surface-variant w-24 flex-shrink-0">{label}</span>
-      <div className="flex-1 h-1.5 bg-surface-container rounded-full overflow-hidden">
-        <div className={cn('h-full rounded-full transition-all duration-700', color)} style={{ width: `${value}%` }} />
-      </div>
-      <span className="text-xs font-bold text-on-surface w-8 text-right">{value}</span>
-    </div>
-  )
-}
-
 export default function FeedbackPanel({ feedback, scenario, durationSeconds, totalQuestions, onRetry, onBack }: Props) {
+  const router = useRouter()
   const mins = Math.floor(durationSeconds / 60)
   const secs = durationSeconds % 60
 
-  const metricCards = [
-    { label: 'คะแนนรวม', value: feedback.scores.overall, suffix: '/100', isScore: true },
-    { label: 'เวลาที่ใช้', value: `${mins}:${secs.toString().padStart(2,'0')}`, suffix: 'นาที', isScore: false },
-    { label: 'คำถามทั้งหมด', value: totalQuestions, suffix: 'ข้อ', isScore: false },
-    { label: 'OLDCARTS ครบ', value: feedback.oldcartsCompleted, suffix: '/8', isScore: false },
-  ]
-
-  const oldcartsBreakdown = [
-    { label: 'Onset', value: feedback.scores.onset },
-    { label: 'Location', value: feedback.scores.location },
-    { label: 'Duration', value: feedback.scores.duration },
-    { label: 'Character', value: feedback.scores.character },
-    { label: 'Aggravating', value: feedback.scores.aggravating },
-    { label: 'Relieving', value: feedback.scores.relieving },
-    { label: 'Timing', value: feedback.scores.timing },
-    { label: 'Severity', value: feedback.scores.severity },
-  ].sort((a, b) => a.value - b.value)
-
   return (
-    <div className="min-h-screen bg-surface">
-      {/* Hero */}
-      <div className="bg-surface-container-low border-b border-outline-variant/10 pt-16 pb-10 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex items-center gap-4 mb-6">
-            <a href="/dashboard" className="text-on-surface-variant hover:text-primary text-sm transition-colors">← Dashboard</a>
-            <span className="text-on-surface-variant/40">/</span>
-            <span className="text-sm text-on-surface">{scenario.name}</span>
-          </div>
-          <div className="flex flex-col md:flex-row md:items-center gap-6">
-            <div className="flex items-center gap-4">
-              <div className="avatar-halo">
-                <div className="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center text-3xl">
-                  {scenario.gender === 'male' ? '👨' : '👩'}
-                </div>
-              </div>
-              <div>
-                <h1 className="headline-md text-on-surface">ผลการซักประวัติ</h1>
-                <p className="body-md text-on-surface-variant">{scenario.name} — {scenario.chiefComplaint}</p>
-              </div>
-            </div>
-            <div className="md:ml-auto">
-              <ScoreRing score={feedback.scores.overall} />
-            </div>
-          </div>
-
-          {/* Metric Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-8">
-            {metricCards.map((m) => {
-              const s = typeof m.value === 'number' && m.isScore ? m.value as number : 0
-              const bgClass = m.isScore
-                ? s >= 80 ? 'bg-primary-container/30' : s >= 60 ? 'bg-tertiary-container/20' : 'bg-error-container/20'
-                : 'bg-surface-container-lowest'
-              return (
-                <div key={m.label} className={cn('rounded-xl p-4 premium-shadow', bgClass)}>
-                  <p className="label-sm text-on-surface-variant mb-1">{m.label}</p>
-                  <p className="text-2xl font-black text-on-surface">
-                    {m.value}<span className="text-sm font-medium text-on-surface-variant ml-1">{m.suffix}</span>
-                  </p>
-                </div>
-              )
-            })}
+    <div className="min-h-screen bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+      {/* TopNavBar (Mobile-optimized) */}
+      <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-outline-variant/10 flex justify-between items-center px-6 py-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xl font-black tracking-tight text-primary">MedSim</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <button className="text-on-surface-variant/60 p-2 rounded-full hover:bg-surface-container transition-all">
+            <span className="material-symbols-outlined !text-2xl">notifications</span>
+          </button>
+          <div 
+            onClick={() => router.push('/profile')}
+            className="w-9 h-9 rounded-full bg-primary-container flex items-center justify-center border border-primary/10 cursor-pointer active:scale-95 transition-all shadow-sm shadow-primary/5"
+          >
+            <span className="material-symbols-outlined !text-xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
           </div>
         </div>
-      </div>
+      </nav>
 
-      {/* Body */}
-      <div className="max-w-5xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* OLDCARTS Breakdown */}
-        <div className="bg-surface-container-lowest rounded-2xl premium-shadow p-6">
-          <h2 className="title-md text-on-surface mb-4">OLDCARTS Breakdown</h2>
-          <div className="flex flex-col gap-3">
-            {oldcartsBreakdown.map((item) => (
-              <ScoreBar key={item.label} label={item.label} value={item.value} />
+      <main className="pt-20 pb-24 px-5 max-w-[390px] mx-auto space-y-8 animate-fade-in">
+        {/* Hero Header */}
+        <header className="space-y-3 pt-4">
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 bg-primary text-on-primary text-[10px] font-black tracking-[0.2em] uppercase rounded-full">
+              SIMULATION COMPLETE
+            </span>
+          </div>
+          <h1 className="text-3xl font-black tracking-tighter text-on-surface leading-tight">
+            Excellent Work, Student.
+          </h1>
+          <p className="body-md text-on-surface-variant leading-relaxed font-medium">
+            Your clinical interaction with <span className="font-bold text-on-surface">{scenario.name}</span> shows strong foundational skills. Review the detailed AI analysis below.
+          </p>
+        </header>
+
+        {/* Stats Bento Grid (2x2) */}
+        <section className="grid grid-cols-2 gap-4">
+          {[
+            { icon: 'clinical_notes', label: 'Accuracy', value: `${feedback.scores.overall}%`, color: 'text-primary' },
+            { icon: 'timer', label: 'Time spent', value: `${mins}:${secs.toString().padStart(2, '0')}`, color: 'text-tertiary' },
+            { icon: 'verified_user', label: 'Safety Score', value: feedback.scores.overall >= 80 ? 'A+' : 'B', color: 'text-primary' },
+            { icon: 'local_activity', label: 'OLDCARTS', value: `${feedback.oldcartsCompleted}/8`, color: 'text-secondary' },
+          ].map((stat, i) => (
+            <div key={i} className="bg-surface-container-lowest p-5 rounded-[2rem] premium-shadow-md border border-outline-variant/5 flex flex-col justify-between h-36">
+              <span className={cn("material-symbols-outlined !text-2xl", stat.color)}>{stat.icon}</span>
+              <div>
+                <p className="text-[10px] font-black tracking-widest uppercase text-on-surface-variant/40 mb-1">{stat.label}</p>
+                <p className="text-2xl font-black text-on-surface tracking-tighter">{stat.value}</p>
+              </div>
+            </div>
+          ))}
+        </section>
+
+        {/* Progress Overview */}
+        <section className="bg-surface-container-lowest p-6 lg:p-8 rounded-[2rem] lg:rounded-[2.5rem] premium-shadow border border-outline-variant/5 space-y-6 lg:space-y-8">
+          <h2 className="text-base lg:text-lg font-black tracking-tight uppercase tracking-widest text-on-surface-variant/60 flex items-center gap-3">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+            Clinical Breakdown
+          </h2>
+          <div className="space-y-5 lg:space-y-6">
+            {Object.entries(feedback.scores)
+              .filter(([key]) => ['onset', 'location', 'duration', 'character'].includes(key))
+              .map(([key, value]) => (
+              <div key={key} className="space-y-2 group">
+                <div className="flex justify-between text-xs lg:text-sm">
+                  <span className="font-bold text-on-surface-variant capitalize">{key}</span>
+                  <span className="text-primary font-black">{value}%</span>
+                </div>
+                <div className="w-full h-1.5 lg:h-2 bg-surface-container rounded-full overflow-hidden p-0.5">
+                  <div 
+                    className="h-full bg-primary rounded-full transition-all duration-1000 ease-out" 
+                    style={{ width: `${value}%` }} 
+                  />
+                </div>
+              </div>
             ))}
           </div>
-        </div>
+        </section>
 
-        {/* Feedback Cards */}
-        <div className="flex flex-col gap-4">
+        {/* Mentor Feedback Cards */}
+        <section className="space-y-4">
+          <h2 className="text-lg font-black tracking-tight px-1 text-on-surface">Mentor Feedback</h2>
+          
+          {/* Success Card */}
           {feedback.good.length > 0 && (
-            <div className="bg-primary-container/20 border-l-4 border-primary rounded-xl p-4">
-              <p className="label-md text-primary mb-2">จุดที่ทำได้ดี</p>
-              <ul className="flex flex-col gap-1.5">
-                {feedback.good.map((g, i) => (
-                  <li key={i} className="body-md text-on-primary-container flex gap-2">
-                    <span className="text-primary flex-shrink-0">✓</span>
-                    {g}
+            <div className="bg-primary/5 border-l-4 border-primary p-6 rounded-[2rem] space-y-3">
+              <div className="flex items-center gap-3 text-primary">
+                <span className="material-symbols-outlined !text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                <span className="font-black text-xs tracking-[0.15em] uppercase">Clinical Strengths</span>
+              </div>
+              <ul className="space-y-2">
+                {feedback.good.slice(0, 2).map((item, i) => (
+                  <li key={i} className="text-sm font-medium text-on-surface-variant leading-relaxed flex gap-2">
+                    <span className="opacity-40">•</span> {item}
                   </li>
                 ))}
               </ul>
             </div>
           )}
-          {feedback.missed.length > 0 && (
-            <div className="bg-error-container/10 border-l-4 border-error rounded-xl p-4">
-              <p className="label-md text-error mb-2">สิ่งที่พลาด / ควรถามเพิ่ม</p>
-              <ul className="flex flex-col gap-1.5">
-                {feedback.missed.map((m, i) => (
-                  <li key={i} className="body-md text-on-error-container flex gap-2">
-                    <span className="text-error flex-shrink-0">✗</span>
-                    {m}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {feedback.tips.length > 0 && (
-            <div className="bg-tertiary-container/10 border-l-4 border-tertiary rounded-xl p-4">
-              <p className="label-md text-tertiary mb-2">คำแนะนำจากอาจารย์</p>
-              <ul className="flex flex-col gap-1.5">
-                {feedback.tips.map((t, i) => (
-                  <li key={i} className="body-md text-on-tertiary-container flex gap-2">
-                    <span className="text-tertiary flex-shrink-0">💡</span>
-                    {t}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
-      </div>
 
-      {/* Actions */}
-      <div className="max-w-5xl mx-auto px-6 pb-12 flex flex-col sm:flex-row gap-3">
-        <button onClick={onRetry} className="px-6 py-3 rounded-xl border border-primary text-primary font-semibold hover:bg-primary-container/20 transition-all active:scale-95">
-          ลองใหม่ scenario เดิม
-        </button>
-        <button onClick={onBack} className="px-6 py-3 rounded-xl cta-gradient text-on-primary font-semibold active:scale-95 transition-all">
-          เลือก scenario ใหม่
-        </button>
-      </div>
+          {/* Caution Card */}
+          {feedback.missed.length > 0 && (
+            <div className="bg-error/5 border-l-4 border-error p-6 rounded-[2rem] space-y-3">
+              <div className="flex items-center gap-3 text-error">
+                <span className="material-symbols-outlined !text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>warning</span>
+                <span className="font-black text-xs tracking-[0.15em] uppercase">Knowledge Gaps</span>
+              </div>
+              <ul className="space-y-2">
+                {feedback.missed.slice(0, 2).map((item, i) => (
+                  <li key={i} className="text-sm font-medium text-on-surface-variant leading-relaxed flex gap-2">
+                    <span className="opacity-40">•</span> {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+
+        {/* Final CTA */}
+        <section className="pt-4 pb-12 space-y-4">
+          <button 
+            onClick={onRetry}
+            className="w-full cta-gradient py-5 rounded-[1.75rem] text-on-primary font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20 flex items-center justify-center gap-3 active:scale-[0.98] transition-all text-xs"
+          >
+            Restart Simulation <span className="material-symbols-outlined !text-xl">play_circle</span>
+          </button>
+          <button 
+            onClick={onBack}
+            className="w-full py-5 rounded-[1.75rem] text-on-surface-variant font-black text-xs uppercase tracking-[0.2em] border border-outline-variant/20 hover:bg-surface-container-low transition-all active:scale-[0.98]"
+          >
+            Return to Dashboard
+          </button>
+        </section>
+      </main>
+
+      {/* Mobile Bottom Nav (Synced with other pages) */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 glass-nav border-t border-outline-variant/15 pb-safe">
+        <div className="flex items-center justify-around py-3 px-4">
+          {[
+            { icon: 'dashboard', label: 'Dashboard', href: '/dashboard' },
+            { icon: 'medical_services', label: 'Simulations', href: '/dashboard', active: true },
+            { icon: 'leaderboard', label: 'Performance', href: '/dashboard' },
+            { icon: 'person', label: 'Profile', href: '/profile' },
+          ].map((item) => (
+            <button
+              key={item.label}
+              onClick={() => router.push(item.href)}
+              className={cn(
+                'flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all active:scale-90',
+                item.active ? 'text-primary font-bold' : 'text-on-surface-variant/60'
+              )}
+            >
+              <span className={cn("material-symbols-outlined !text-2xl", item.active && "!fill-1")}>{item.icon}</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.1em]">{item.label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
     </div>
   )
 }
