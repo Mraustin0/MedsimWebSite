@@ -6,9 +6,8 @@ export async function chatWithPatient(
   history: { role: 'user' | 'assistant'; content: string }[],
   systemPrompt: string
 ): Promise<string> {
-  // gemini-1.5-flash supports systemInstruction natively
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.5-flash',
     systemInstruction: systemPrompt,
   })
 
@@ -28,7 +27,7 @@ export async function generateFeedback(
   transcript: string,
   scenarioContext: string
 ): Promise<string> {
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' })
 
   const prompt = `คุณเป็นอาจารย์แพทย์ผู้เชี่ยวชาญด้านการสอนซักประวัติ
 ตอบเป็น JSON เท่านั้น ห้ามมี markdown backticks หรือข้อความอื่น
