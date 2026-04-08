@@ -12,10 +12,24 @@ export default withAuth(
       console.log(`[MIDDLEWARE] User Role: ${(token as any).role}`)
     }
 
+    const role = (token as any)?.role
+
+    // After login, redirect based on role
     if (url.pathname === "/login" && token) {
-      console.log(`[MIDDLEWARE] Authenticated user on login page, redirecting to /dashboard`)
+      const dest = role === 'INSTRUCTOR' ? '/instructor' : '/dashboard'
+      return NextResponse.redirect(new URL(dest, req.url))
+    }
+
+    // Redirect instructors away from student dashboard to instructor page
+    if (url.pathname === "/dashboard" && role === 'INSTRUCTOR') {
+      return NextResponse.redirect(new URL("/instructor", req.url))
+    }
+
+    // Prevent students from accessing instructor page
+    if (url.pathname.startsWith("/instructor") && role !== 'INSTRUCTOR') {
       return NextResponse.redirect(new URL("/dashboard", req.url))
     }
+
     return NextResponse.next()
   },
   {

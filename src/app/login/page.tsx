@@ -21,14 +21,16 @@ export default function LoginPage() {
       const res = await signIn('credentials', {
         email,
         password,
-        callbackUrl: '/dashboard',
-        redirect: true, // Let NextAuth handle the redirect
+        redirect: false,
       })
       
       if (res?.error) {
         setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง')
         setIsLoading(false)
+        return
       }
+      // Middleware will redirect based on role
+      window.location.href = '/dashboard'
     } catch (err) {
       console.error('Login error:', err)
       setError('เกิดข้อผิดพลาดในการเข้าสู่ระบบ')
