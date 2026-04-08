@@ -1,38 +1,36 @@
 import { GoogleGenerativeAI } from '@google/generative-ai'
 
-// Access your API key as an environment variable (see ".env" file)
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
-
-const model = genAI.getGenerativeModel({ model: 'gemini-pro' }) // Using gemini-pro for text generation
 
 export async function chatWithPatient(
   history: { role: 'user' | 'assistant'; content: string }[],
   systemPrompt: string
 ): Promise<string> {
-  const chat = model.startChat({
-    history: history.map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'model', // Gemini expects 'user' or 'model'
-      parts: [{ text: msg.content }],
-    })),
+  // gemini-1.5-flash supports systemInstruction natively
+  const model = genAI.getGenerativeModel({
+    model: 'gemini-1.5-flash',
+    systemInstruction: systemPrompt,
   })
 
-  // System prompt might need to be prepended to the first message or handled in a different way
-  // depending on how Gemini API handles system prompts. For simplicity, we'll prepend it to the first message.
-  const messages = history.length > 0 ? history : [{ role: 'user', content: '' }];
-  const firstMessageContent = `${systemPrompt}
+  // history includes the new user message at the end — pass everything before it as chat history
+  const chatHistory = history.slice(0, -1).map((msg) => ({
+    role: msg.role === 'user' ? 'user' : 'model',
+    parts: [{ text: msg.content }],
+  }))
+  const lastMessage = history[history.length - 1]
 
-${messages[0].content}`
-  
-  const result = await chat.sendMessage(firstMessageContent)
-  const response = await result.response
-  return response.text()
+  const chat = model.startChat({ history: chatHistory })
+  const result = await chat.sendMessage(lastMessage.content)
+  return result.response.text()
 }
 
 export async function generateFeedback(
   transcript: string,
   scenarioContext: string
 ): Promise<string> {
-  const prompt = `คุณเป็นอาจารย์แพทย์ผู้เชี่ยวชาญด้านการสอนซักประวัติ 
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+
+  const prompt = `คุณเป็นอาจารย์แพทย์ผู้เชี่ยวชาญด้านการสอนซักประวัติ
 ตอบเป็น JSON เท่านั้น ห้ามมี markdown backticks หรือข้อความอื่น
 
 วิเคราะห์การซักประวัติผู้ป่วยต่อไปนี้ตาม OLDCARTS framework
@@ -61,6 +59,5 @@ ${transcript}
 }`
 
   const result = await model.generateContent(prompt)
-  const response = await result.response
-  return response.text()
+  return result.response.text()
 }

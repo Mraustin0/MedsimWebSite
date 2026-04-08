@@ -590,15 +590,183 @@ function LibraryView() {
   )
 }
 
+interface SessionHistory {
+  id: string
+  scenarioId: string
+  startedAt: string
+  durationSeconds: number
+  oldcartsCompleted: number
+  totalQuestions: number
+  scores: {
+    onset: number; location: number; duration: number; character: number
+    aggravating: number; relieving: number; timing: number; severity: number; overall: number
+  } | null
+}
+
+const OLDCARTS_LABELS: { key: keyof NonNullable<SessionHistory['scores']>; label: string }[] = [
+  { key: 'onset', label: 'Onset' },
+  { key: 'location', label: 'Location' },
+  { key: 'duration', label: 'Duration' },
+  { key: 'character', label: 'Character' },
+  { key: 'aggravating', label: 'Aggravating' },
+  { key: 'relieving', label: 'Relieving' },
+  { key: 'timing', label: 'Timing' },
+  { key: 'severity', label: 'Severity' },
+]
+
 function PerformanceView() {
-  return (
-    <div className="p-10 flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6 animate-fade-in">
-      <div className="w-24 h-24 bg-secondary/10 rounded-[2rem] flex items-center justify-center text-secondary">
-        <span className="material-symbols-outlined !text-5xl" style={{ fontVariationSettings: "'FILL' 1" }}>leaderboard</span>
+  const [history, setHistory] = useState<SessionHistory[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/session/history')
+      .then((r) => r.json())
+      .then((data) => { setHistory(Array.isArray(data) ? data : []); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [])
+
+  const withFeedback = history.filter((s) => s.scores)
+
+  // Avg per OLDCARTS category
+  const avgScores = OLDCARTS_LABELS.map(({ key, label }) => {
+    const avg = withFeedback.length > 0
+      ? Math.round(withFeedback.reduce((sum, s) => sum + (s.scores![key] as number), 0) / withFeedback.length)
+      : 0
+    return { key, label, avg }
+  })
+
+  const overallAvg = withFeedback.length > 0
+    ? Math.round(withFeedback.reduce((sum, s) => sum + s.scores!.overall, 0) / withFeedback.length)
+    : 0
+
+  if (loading) {
+    return (
+      <div className="p-10 flex items-center justify-center min-h-[60vh]">
+        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
-      <div className="space-y-2">
-        <h2 className="text-3xl font-black tracking-tight">Analytics Dashboard</h2>
-        <p className="text-on-surface-variant max-w-sm font-medium">Advanced performance metrics and clinical reasoning analytics are being prepared for your account.</p>
+    )
+  }
+
+  if (history.length === 0) {
+    return (
+      <div className="p-10 flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6 animate-fade-in">
+        <div className="w-24 h-24 bg-secondary/10 rounded-[2rem] flex items-center justify-center text-secondary">
+          <span className="material-symbols-outlined !text-5xl" style={{ fontVariationSettings: "'FILL' 1" }}>leaderboard</span>
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-3xl font-black tracking-tight">No Data Yet</h2>
+          <p className="text-on-surface-variant max-w-sm font-medium">Complete a simulation to see your performance analytics here.</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-6 lg:p-10 space-y-10 animate-fade-in">
+      <header className="space-y-2">
+        <h1 className="text-5xl font-black tracking-tighter text-on-surface leading-none">
+          Performance <span className="text-primary">Analytics</span>
+        </h1>
+        <p className="text-lg text-on-surface-variant font-medium">{withFeedback.length} sessions analyzed</p>
+      </header>
+
+      <div className="grid grid-cols-12 gap-8">
+        {/* OLDCARTS Breakdown */}
+        <div className="col-span-12 lg:col-span-7 bg-surface-container-lowest rounded-[3rem] p-8 lg:p-10 premium-shadow border border-outline-variant/5 space-y-8">
+          <div className="flex justify-between items-center">
+            <h3 className="text-2xl font-black text-on-surface tracking-tight">OLDCARTS Breakdown</h3>
+            <div className="px-4 py-2 bg-primary/10 rounded-2xl">
+              <span className="text-primary font-black text-sm">Avg {overallAvg}%</span>
+            </div>
+          </div>
+          <div className="space-y-5">
+            {avgScores.map(({ key, label, avg }) => (
+              <div key={key}>
+                <div className="flex justify-between text-[11px] font-black uppercase tracking-widest mb-2">
+                  <span className="text-on-surface-variant/70">{label}</span>
+                  <span className={cn(avg >= 70 ? 'text-primary' : avg >= 40 ? 'text-tertiary' : 'text-error')}>{avg}%</span>
+                </div>
+                <div className="w-full h-3 bg-surface-container rounded-full overflow-hidden">
+                  <div
+                    className={cn(
+                      'h-full rounded-full transition-all duration-1000',
+                      avg >= 70 ? 'bg-primary' : avg >= 40 ? 'bg-tertiary' : 'bg-error'
+                    )}
+                    style={{ width: `${avg}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Summary Stats */}
+        <div className="col-span-12 lg:col-span-5 flex flex-col gap-6">
+          <div className="grid grid-cols-2 gap-4">
+            {[
+              { icon: 'exercise', label: 'Sessions', value: history.length, color: 'text-primary' },
+              { icon: 'psychology', label: 'Avg Score', value: `${overallAvg}%`, color: 'text-tertiary' },
+              {
+                icon: 'avg_pace', label: 'Avg Time',
+                value: (() => {
+                  const avg = history.length > 0 ? Math.round(history.reduce((s, h) => s + h.durationSeconds, 0) / history.length) : 0
+                  return `${Math.floor(avg / 60)}m ${avg % 60}s`
+                })(),
+                color: 'text-secondary'
+              },
+              {
+                icon: 'checklist', label: 'Avg OLDCARTS',
+                value: withFeedback.length > 0
+                  ? `${Math.round(withFeedback.reduce((s, h) => s + h.oldcartsCompleted, 0) / withFeedback.length)}/8`
+                  : '0/8',
+                color: 'text-primary'
+              },
+            ].map(({ icon, label, value, color }) => (
+              <div key={label} className="bg-surface-container-lowest rounded-[2rem] p-6 premium-shadow-md border border-outline-variant/5 space-y-3">
+                <span className={cn('material-symbols-outlined !text-3xl', color)} style={{ fontVariationSettings: "'FILL' 1" }}>{icon}</span>
+                <div>
+                  <p className="text-[10px] font-black text-on-surface-variant/40 uppercase tracking-widest mb-1">{label}</p>
+                  <p className="text-2xl font-black text-on-surface tracking-tight">{value}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Session History */}
+        <div className="col-span-12 space-y-6">
+          <h3 className="text-2xl font-black text-on-surface tracking-tight px-2">Recent Sessions</h3>
+          <div className="space-y-4">
+            {history.slice(0, 10).map((s) => {
+              const mins = Math.floor(s.durationSeconds / 60)
+              const secs = s.durationSeconds % 60
+              const date = new Date(s.startedAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' })
+              const overall = s.scores?.overall ?? 0
+              return (
+                <div key={s.id} className="flex items-center gap-6 p-6 bg-surface-container-lowest rounded-[2.5rem] border border-outline-variant/5 premium-shadow-md">
+                  <div className={cn(
+                    'w-14 h-14 rounded-2xl flex items-center justify-center font-black text-lg shrink-0',
+                    overall >= 70 ? 'bg-primary/10 text-primary' : overall >= 40 ? 'bg-tertiary/10 text-tertiary' : 'bg-error/10 text-error'
+                  )}>
+                    {overall}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-black text-on-surface truncate">{s.scenarioId}</p>
+                    <p className="text-xs text-on-surface-variant/60 font-bold">{date} · {mins}m {secs}s · {s.oldcartsCompleted}/8 OLDCARTS</p>
+                  </div>
+                  <div className="hidden sm:flex gap-1 shrink-0">
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((dot) => (
+                      <div key={dot} className={cn(
+                        'w-2 h-2 rounded-full',
+                        dot <= s.oldcartsCompleted ? 'bg-primary' : 'bg-outline-variant/30'
+                      )} />
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </div>
     </div>
   )
