@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { chatWithPatient } from '@/lib/anthropic'
+import { chatWithPatient } from '@/lib/gemini'
 import { ChatRequest } from '@/types'
+import { prisma } from '@/lib/db'
 
 export async function POST(req: NextRequest) {
   try {
     const body: ChatRequest = await req.json()
-    const { message, history, systemPrompt } = body
+    const { sessionId, message, history, systemPrompt } = body
 
     const updatedHistory = [
       ...history,
@@ -13,6 +14,16 @@ export async function POST(req: NextRequest) {
     ]
 
     const reply = await chatWithPatient(updatedHistory, systemPrompt)
+
+    // Save both messages to DB if sessionId exists
+    if (sessionId) {
+      await prisma.message.createMany({
+        data: [
+          { sessionId, role: 'USER', content: message },
+          { sessionId, role: 'ASSISTANT', content: reply },
+        ],
+      })
+    }
 
     return NextResponse.json({ message: reply })
   } catch (error) {

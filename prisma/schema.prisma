@@ -9,19 +9,39 @@ datasource db {
 
 // ─── Users ───────────────────────────────────────────────
 model User {
-  id        String    @id @default(cuid())
-  name      String
-  email     String    @unique
-  role      Role      @default(STUDENT)
-  avatarUrl String?
-  sessions  Session[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id          String    @id @default(cuid())
+  name        String
+  email       String    @unique
+  role        Role      @default(STUDENT)
+  avatarUrl   String?
+  yearOfStudy String?
+  specialty   String?
+  university  String?   @default("Khon Kaen University")
+  sessions    Session[]
+  scenarios   ScenarioRecord[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 enum Role {
   STUDENT
   INSTRUCTOR
+}
+
+// ─── Scenarios (instructor-created) ──────────────────────
+model ScenarioRecord {
+  id             String   @id @default(cuid())
+  name           String
+  age            Int
+  gender         String
+  chiefComplaint String
+  description    String   @default("")
+  difficulty     String   @default("medium")
+  systemPrompt   String
+  tags           String[]
+  createdById    String
+  createdBy      User     @relation(fields: [createdById], references: [id])
+  createdAt      DateTime @default(now())
 }
 
 // ─── Sessions ────────────────────────────────────────────
@@ -56,9 +76,9 @@ enum MsgRole {
 
 // ─── Feedback ────────────────────────────────────────────
 model Feedback {
-  id                String  @id @default(cuid())
-  sessionId         String  @unique
-  session           Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  id                String   @id @default(cuid())
+  sessionId         String   @unique
+  session           Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   scoreOnset        Int
   scoreLocation     Int
   scoreDuration     Int
