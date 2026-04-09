@@ -29,55 +29,16 @@ interface Props {
 
 export default function DashboardClient({ scenarios }: Props) {
   const router = useRouter()
-  const { data: session, update: updateSession } = useSession()
+  const { data: session } = useSession()
   const [activeView, setActiveView] = useState<ViewType>('Dashboard')
   const [filter, setFilter] = useState<DifficultyLevel | 'all'>('all')
-  const [showInstructorModal, setShowInstructorModal] = useState(false)
-  const [instructorCode, setInstructorCode] = useState('')
-  const [instructorError, setInstructorError] = useState('')
 
   const userName = session?.user?.name || 'Medical Student'
-  const userRole = (session?.user as any)?.role === 'INSTRUCTOR' ? 'Clinical Instructor' : 'Medical Student'
-  const isInstructor = (session?.user as any)?.role === 'INSTRUCTOR'
+  const userRole = 'Medical Student'
 
-  const handleProfileClick = () => {
-    window.location.href = '/profile'
-  }
-
+  const handleProfileClick = () => { window.location.href = '/profile' }
   const handleLogout = () => {
-    if (confirm('คุณต้องการออกจากระบบใช่หรือไม่?')) {
-      signOut({ callbackUrl: '/login' })
-    }
-  }
-
-  const handleInstructorAccess = async () => {
-    // If already instructor, go directly
-    if (isInstructor) {
-      router.push('/instructor')
-      return
-    }
-    setShowInstructorModal(true)
-  }
-
-  const handleVerifyInstructor = async () => {
-    setInstructorError('')
-    try {
-      const res = await fetch('/api/instructor/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: instructorCode }),
-      })
-      if (!res.ok) {
-        const data = await res.json()
-        setInstructorError(data.error || 'รหัสไม่ถูกต้อง')
-        return
-      }
-      await updateSession({})
-      setShowInstructorModal(false)
-      router.push('/instructor')
-    } catch {
-      setInstructorError('เกิดข้อผิดพลาด')
-    }
+    if (confirm('คุณต้องการออกจากระบบใช่หรือไม่?')) signOut({ callbackUrl: '/login' })
   }
 
   const filtered = filter === 'all'
@@ -101,49 +62,6 @@ export default function DashboardClient({ scenarios }: Props) {
 
   return (
     <div className="min-h-screen bg-surface selection:bg-primary-container selection:text-on-primary-container">
-      {/* ===== Instructor Code Modal ===== */}
-      {showInstructorModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-          <div className="bg-surface-container-lowest rounded-3xl p-8 w-full max-w-sm premium-shadow animate-fade-in">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 rounded-2xl bg-secondary-container/30 flex items-center justify-center">
-                <span className="material-symbols-outlined text-secondary !text-2xl">school</span>
-              </div>
-              <div>
-                <h3 className="text-lg font-black text-on-surface">Instructor Access</h3>
-                <p className="text-xs text-on-surface-variant">กรอกรหัสอาจารย์เพื่อเข้าใช้งาน</p>
-              </div>
-            </div>
-            <input
-              type="password"
-              value={instructorCode}
-              onChange={(e) => setInstructorCode(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleVerifyInstructor()}
-              placeholder="Instructor Code"
-              autoFocus
-              className="w-full px-5 py-4 bg-surface-container/50 border border-outline-variant/15 rounded-2xl text-sm focus:ring-2 focus:ring-secondary/20 focus:border-secondary/30 transition-all outline-none mb-3"
-            />
-            {instructorError && (
-              <p className="text-error text-xs font-bold mb-3 px-1">{instructorError}</p>
-            )}
-            <div className="flex gap-3 mt-4">
-              <button
-                onClick={() => { setShowInstructorModal(false); setInstructorCode(''); setInstructorError('') }}
-                className="flex-1 py-3 rounded-2xl text-on-surface-variant font-bold text-sm hover:bg-surface-container transition-all"
-              >
-                ยกเลิก
-              </button>
-              <button
-                onClick={handleVerifyInstructor}
-                className="flex-1 py-3 rounded-2xl cta-gradient text-on-primary font-bold text-sm active:scale-95 transition-all"
-              >
-                ยืนยัน
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* ===== SIDEBAR: Hidden on mobile, flex on desktop ===== */}
       <aside className="fixed left-0 top-0 h-screen w-[72px] hover:w-64 bg-surface-container-lowest hidden lg:flex flex-col py-6 gap-y-8 z-50 border-r border-outline-variant/10 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] group/sidebar overflow-hidden premium-shadow">
         
@@ -186,17 +104,6 @@ export default function DashboardClient({ scenarios }: Props) {
             </button>
           ))}
         </nav>
-
-        {/* Instructor Button */}
-        <div className="px-3 mt-4">
-          <button
-            onClick={handleInstructorAccess}
-            className="flex items-center gap-4 w-full py-3.5 rounded-2xl transition-all group/footer text-on-surface-variant hover:text-secondary hover:bg-secondary-container/20"
-          >
-            <span className="material-symbols-outlined !text-2xl flex-shrink-0 w-12 text-center">school</span>
-            <span className="opacity-0 group-hover/sidebar:opacity-100 transition-opacity duration-300 font-bold text-sm tracking-tight whitespace-nowrap">Instructor</span>
-          </button>
-        </div>
 
         {/* Footer Items */}
         <div className="mt-auto flex flex-col gap-2 px-3">
@@ -295,13 +202,6 @@ export default function DashboardClient({ scenarios }: Props) {
           </div>
         </nav>
 
-        {/* Mobile FAB — Instructor */}
-        <button
-          onClick={handleInstructorAccess}
-          className="fixed bottom-24 right-4 z-50 lg:hidden w-14 h-14 rounded-2xl cta-gradient text-on-primary flex items-center justify-center shadow-2xl shadow-primary/30 active:scale-90 transition-all"
-        >
-          <span className="material-symbols-outlined !text-2xl">school</span>
-        </button>
       </div>
     </div>
   )
@@ -322,6 +222,7 @@ function DashboardView({ scenarios, setActiveView }: { scenarios: Scenario[]; se
   const firstName = session?.user?.name?.split(' ')[0] || 'Student'
   const specialty = (session?.user as any)?.specialty || 'Cardiology'
   const [stats, setStats] = useState<Stats | null>(null)
+  const [weeklyMode, setWeeklyMode] = useState<'practice' | 'exam'>('exam')
 
   useEffect(() => {
     fetch('/api/session/stats')
@@ -332,7 +233,17 @@ function DashboardView({ scenarios, setActiveView }: { scenarios: Scenario[]; se
 
   const avgMins = stats ? Math.floor(stats.avgDuration / 60) : 0
   const avgSecs = stats ? stats.avgDuration % 60 : 0
-  const weeklyMax = stats ? Math.max(...stats.weekly, 1) : 1
+
+  // Practice = sessions count, Exam = avg score mapped to 0-N scale per day
+  const weeklyData = stats?.weekly ?? [0, 0, 0, 0, 0, 0, 0]
+  const weeklyMax = Math.max(...weeklyData, 1)
+
+  // Skill mastery from real OLDCARTS avg — onset/location/duration/character = diagnosis skill
+  // aggravating/relieving/timing/severity = patient care skill
+  // We derive from avgOldcarts (0-8 scale)
+  const oldcartsAvg = stats?.avgOldcarts ?? 0
+  const diagnosisScore = stats ? Math.min(100, Math.round((oldcartsAvg / 4) * 100 * 0.85 + stats.avgScore * 0.15)) : 0
+  const patientCareScore = stats ? Math.min(100, Math.round((oldcartsAvg / 8) * 100 * 0.7 + stats.avgScore * 0.3)) : 0
 
   return (
     <div className="p-6 lg:p-10 space-y-10 animate-fade-in">
@@ -374,16 +285,20 @@ function DashboardView({ scenarios, setActiveView }: { scenarios: Scenario[]; se
             <div className="flex justify-between items-center mb-10">
               <h3 className="text-2xl font-black text-on-surface tracking-tight">Weekly Progress</h3>
               <div className="flex gap-2 p-1.5 bg-surface-container rounded-2xl">
-                <button className="px-5 py-2 text-on-surface-variant text-xs font-black uppercase tracking-widest rounded-xl transition-all">Practice</button>
-                <button className="px-5 py-2 bg-primary text-on-primary text-xs font-black uppercase tracking-widest rounded-xl shadow-lg shadow-primary/20 transition-all">Exam</button>
+                <button
+                  onClick={() => setWeeklyMode('practice')}
+                  className={cn('px-5 py-2 text-xs font-black uppercase tracking-widest rounded-xl transition-all', weeklyMode === 'practice' ? 'bg-primary text-on-primary shadow-lg shadow-primary/20' : 'text-on-surface-variant')}
+                >Practice</button>
+                <button
+                  onClick={() => setWeeklyMode('exam')}
+                  className={cn('px-5 py-2 text-xs font-black uppercase tracking-widest rounded-xl transition-all', weeklyMode === 'exam' ? 'bg-primary text-on-primary shadow-lg shadow-primary/20' : 'text-on-surface-variant')}
+                >Exam</button>
               </div>
             </div>
             
             <div className="flex-1 flex items-end justify-between gap-4 lg:gap-8 pb-4">
               {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => {
-                const heights = stats?.weekly
-                  ? stats.weekly.map((v) => Math.max((v / weeklyMax) * 100, 5))
-                  : [5, 5, 5, 5, 5, 5, 5]
+                const heights = weeklyData.map((v) => Math.max((v / weeklyMax) * 100, 5))
                 const todayIdx = new Date().getDay()
                 const isActive = i === (todayIdx === 0 ? 6 : todayIdx - 1)
                 return (
@@ -502,24 +417,20 @@ function DashboardView({ scenarios, setActiveView }: { scenarios: Scenario[]; se
                 <span className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline cursor-pointer">Report</span>
               </div>
               <div className="space-y-6">
-                <div>
-                  <div className="flex justify-between text-[11px] font-black mb-2 uppercase tracking-widest">
-                    <span className="text-on-surface-variant/50">Diagnosis</span>
-                    <span className="text-primary">88%</span>
+                {[
+                  { label: 'Diagnosis', score: diagnosisScore },
+                  { label: 'Patient Care', score: patientCareScore },
+                ].map(({ label, score }) => (
+                  <div key={label}>
+                    <div className="flex justify-between text-[11px] font-black mb-2 uppercase tracking-widest">
+                      <span className="text-on-surface-variant/50">{label}</span>
+                      <span className={cn(score >= 70 ? 'text-primary' : score >= 40 ? 'text-tertiary' : 'text-error')}>{score}%</span>
+                    </div>
+                    <div className="w-full h-2.5 bg-surface-container rounded-full overflow-hidden p-0.5">
+                      <div className={cn('h-full rounded-full shadow-sm transition-all duration-1000', score >= 70 ? 'bg-primary' : score >= 40 ? 'bg-tertiary' : 'bg-error')} style={{ width: `${score}%` }}></div>
+                    </div>
                   </div>
-                  <div className="w-full h-2.5 bg-surface-container rounded-full overflow-hidden p-0.5">
-                    <div className="h-full bg-primary rounded-full shadow-sm" style={{ width: '88%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-[11px] font-black mb-2 uppercase tracking-widest">
-                    <span className="text-on-surface-variant/50">Patient Care</span>
-                    <span className="text-primary">72%</span>
-                  </div>
-                  <div className="w-full h-2.5 bg-surface-container rounded-full overflow-hidden p-0.5">
-                    <div className="h-full bg-primary rounded-full shadow-sm" style={{ width: '72%' }}></div>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
           </div>
@@ -576,15 +487,103 @@ function SimulationsView({ scenarios, filter, setFilter }: { scenarios: Scenario
   )
 }
 
+const CLINICAL_REFS = [
+  {
+    category: 'Cardiovascular',
+    icon: 'cardiology',
+    color: 'text-error',
+    bg: 'bg-error/10',
+    items: [
+      { title: 'Chest Pain — OLDCARTS Approach', desc: 'Onset, radiation, associated symptoms, risk factors' },
+      { title: 'Acute MI Red Flags', desc: 'Diaphoresis, jaw pain, left arm radiation, nausea' },
+      { title: 'Heart Failure History', desc: 'Dyspnea on exertion, orthopnea, PND, edema' },
+    ],
+  },
+  {
+    category: 'Gastrointestinal',
+    icon: 'gastroenterology',
+    color: 'text-tertiary',
+    bg: 'bg-tertiary/10',
+    items: [
+      { title: 'Abdominal Pain Framework', desc: 'Location, radiation, character, bowel habits, appetite' },
+      { title: 'Peptic Ulcer History', desc: 'Epigastric pain, meals relation, NSAIDs/H.pylori history' },
+      { title: 'GI Bleeding Assessment', desc: 'Hematemesis, melena, hematochezia, onset, quantity' },
+    ],
+  },
+  {
+    category: 'Respiratory',
+    icon: 'pulmonology',
+    color: 'text-secondary',
+    bg: 'bg-secondary/10',
+    items: [
+      { title: 'Dyspnea History', desc: 'Onset, severity (MRC scale), triggers, orthopnea, sputum' },
+      { title: 'Cough Assessment', desc: 'Duration, character, productive, hemoptysis, nocturnal' },
+      { title: 'Asthma vs COPD', desc: 'Age of onset, triggers, reversibility, smoking history' },
+    ],
+  },
+  {
+    category: 'OLDCARTS Framework',
+    icon: 'format_list_bulleted',
+    color: 'text-primary',
+    bg: 'bg-primary/10',
+    items: [
+      { title: 'O — Onset', desc: 'When did it start? Sudden or gradual? What were you doing?' },
+      { title: 'L — Location', desc: 'Where exactly? Does it radiate or spread anywhere?' },
+      { title: 'D — Duration', desc: 'How long does it last? Constant or intermittent?' },
+      { title: 'C — Character', desc: 'Sharp, dull, burning, pressure, throbbing?' },
+      { title: 'A — Aggravating', desc: 'What makes it worse? Movement, food, stress?' },
+      { title: 'R — Relieving', desc: 'What makes it better? Rest, medications, position?' },
+      { title: 'T — Timing', desc: 'Any pattern? Morning, night, after meals?' },
+      { title: 'S — Severity', desc: 'Scale 1–10. How does it affect daily life?' },
+    ],
+  },
+]
+
 function LibraryView() {
+  const [openCategory, setOpenCategory] = useState<string | null>('OLDCARTS Framework')
+
   return (
-    <div className="p-10 flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6 animate-fade-in">
-      <div className="w-24 h-24 bg-tertiary/10 rounded-[2rem] flex items-center justify-center text-tertiary">
-        <span className="material-symbols-outlined !text-5xl" style={{ fontVariationSettings: "'FILL' 1" }}>import_contacts</span>
-      </div>
-      <div className="space-y-2">
-        <h2 className="text-3xl font-black tracking-tight">Clinical Library</h2>
-        <p className="text-on-surface-variant max-w-sm font-medium">Coming soon. You&apos;ll be able to access medical protocols and research case studies here.</p>
+    <div className="p-6 lg:p-10 space-y-10 animate-fade-in">
+      <header className="space-y-2">
+        <h1 className="text-5xl font-black tracking-tighter text-on-surface leading-none">
+          Clinical <span className="text-tertiary">Library</span>
+        </h1>
+        <p className="text-lg text-on-surface-variant font-medium">Quick reference for history-taking frameworks and clinical pearls.</p>
+      </header>
+
+      <div className="space-y-4">
+        {CLINICAL_REFS.map((cat) => (
+          <div key={cat.category} className="bg-surface-container-lowest rounded-[2.5rem] border border-outline-variant/5 premium-shadow overflow-hidden">
+            <button
+              onClick={() => setOpenCategory(openCategory === cat.category ? null : cat.category)}
+              className="w-full flex items-center gap-5 p-6 lg:p-8 hover:bg-surface-container/30 transition-all"
+            >
+              <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0', cat.bg)}>
+                <span className={cn('material-symbols-outlined !text-2xl', cat.color)} style={{ fontVariationSettings: "'FILL' 1" }}>{cat.icon}</span>
+              </div>
+              <div className="flex-1 text-left">
+                <p className="font-black text-on-surface text-lg tracking-tight">{cat.category}</p>
+                <p className="text-xs text-on-surface-variant/50 font-bold">{cat.items.length} topics</p>
+              </div>
+              <span className={cn('material-symbols-outlined text-on-surface-variant/40 transition-transform duration-300', openCategory === cat.category && 'rotate-180')}>expand_more</span>
+            </button>
+
+            {openCategory === cat.category && (
+              <div className="px-6 lg:px-8 pb-6 space-y-3 animate-fade-in">
+                <div className="h-px bg-outline-variant/10 mb-5" />
+                {cat.items.map((item) => (
+                  <div key={item.title} className="flex items-start gap-4 p-4 rounded-2xl bg-surface-container/30 hover:bg-surface-container/60 transition-all">
+                    <div className={cn('w-2 h-2 rounded-full mt-2 flex-shrink-0', cat.color.replace('text-', 'bg-'))} />
+                    <div>
+                      <p className="font-black text-on-surface text-sm">{item.title}</p>
+                      <p className="text-xs text-on-surface-variant/60 font-medium mt-0.5">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   )
