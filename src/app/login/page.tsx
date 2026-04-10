@@ -74,8 +74,8 @@ export default function LoginPage() {
         {/* Subtle gradient wash */}
         <div className="absolute inset-0 bg-gradient-to-tr from-[#7ff3be]/20 via-white to-white"></div>
         
-        <div className="relative z-10 max-w-lg">
-          <div className="mb-16 flex items-center gap-3">
+        <div className="relative z-10 max-w-lg -translate-y-24">
+          <div className="mb-6 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-[#006948] flex items-center justify-center text-white shadow-sm">
               <span className="material-symbols-outlined !text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>medical_services</span>
             </div>
