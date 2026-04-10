@@ -7,28 +7,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ─── Users ───────────────────────────────────────────────
 model User {
-  id          String    @id @default(cuid())
+  id          String           @id @default(cuid())
   name        String
-  email       String    @unique
-  role        Role      @default(STUDENT)
+  email       String           @unique
+  role        Role             @default(STUDENT)
   avatarUrl   String?
-  yearOfStudy String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
   specialty   String?
-  university  String?   @default("Khon Kaen University")
-  sessions    Session[]
+  university  String?          @default("Khon Kaen University")
+  yearOfStudy String?
   scenarios   ScenarioRecord[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  sessions    Session[]
 }
 
-enum Role {
-  STUDENT
-  INSTRUCTOR
-}
-
-// ─── Scenarios (instructor-created) ──────────────────────
 model ScenarioRecord {
   id             String   @id @default(cuid())
   name           String
@@ -40,45 +33,36 @@ model ScenarioRecord {
   systemPrompt   String
   tags           String[]
   createdById    String
-  createdBy      User     @relation(fields: [createdById], references: [id])
   createdAt      DateTime @default(now())
+  createdBy      User     @relation(fields: [createdById], references: [id])
 }
 
-// ─── Sessions ────────────────────────────────────────────
 model Session {
   id              String    @id @default(cuid())
   userId          String
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   scenarioId      String
-  messages        Message[]
-  feedback        Feedback?
   durationSeconds Int?
   startedAt       DateTime  @default(now())
   endedAt         DateTime?
+  feedback        Feedback?
+  messages        Message[]
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// ─── Messages ────────────────────────────────────────────
 model Message {
   id        String   @id @default(cuid())
   sessionId String
-  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   role      MsgRole
   content   String
   createdAt DateTime @default(now())
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@index([sessionId])
 }
 
-enum MsgRole {
-  USER
-  ASSISTANT
-}
-
-// ─── Feedback ────────────────────────────────────────────
 model Feedback {
   id                String   @id @default(cuid())
   sessionId         String   @unique
-  session           Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   scoreOnset        Int
   scoreLocation     Int
   scoreDuration     Int
@@ -88,10 +72,21 @@ model Feedback {
   scoreTiming       Int
   scoreSeverity     Int
   scoreOverall      Int
-  good              String[] // สิ่งที่ทำได้ดี
-  missed            String[] // สิ่งที่พลาด
-  tips              String[] // คำแนะนำ
+  good              String[]
+  missed            String[]
+  tips              String[]
   totalQuestions    Int
   oldcartsCompleted Int
   createdAt         DateTime @default(now())
+  session           Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  STUDENT
+  INSTRUCTOR
+}
+
+enum MsgRole {
+  USER
+  ASSISTANT
 }

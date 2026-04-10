@@ -6,6 +6,8 @@ import { useSession, signOut } from 'next-auth/react'
 import { Scenario, DifficultyLevel } from '@/types'
 import ScenarioCard from '@/components/ScenarioCard'
 import { cn } from '@/components/ui/cn'
+import { useToast } from '@/components/ui/Toast'
+import { useConfirm } from '@/components/ui/ConfirmDialog'
 
 const FILTERS: { label: string; value: DifficultyLevel | 'all' }[] = [
   { label: 'ทั้งหมด', value: 'all' },
@@ -32,13 +34,20 @@ export default function DashboardClient({ scenarios }: Props) {
   const { data: session } = useSession()
   const [activeView, setActiveView] = useState<ViewType>('Dashboard')
   const [filter, setFilter] = useState<DifficultyLevel | 'all'>('all')
+  const confirm = useConfirm()
 
   const userName = session?.user?.name || 'Medical Student'
   const userRole = 'Medical Student'
 
   const handleProfileClick = () => { window.location.href = '/profile' }
-  const handleLogout = () => {
-    if (confirm('คุณต้องการออกจากระบบใช่หรือไม่?')) signOut({ callbackUrl: '/login' })
+  const handleLogout = async () => {
+    const ok = await confirm({
+      title: 'ออกจากระบบ',
+      message: 'คุณต้องการออกจากระบบใช่หรือไม่?',
+      confirmLabel: 'ออกจากระบบ',
+      variant: 'danger',
+    })
+    if (ok) signOut({ callbackUrl: '/login' })
   }
 
   const filtered = filter === 'all'

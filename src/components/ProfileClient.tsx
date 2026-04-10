@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { cn } from '@/components/ui/cn'
+import { useToast } from '@/components/ui/Toast'
+import { useConfirm } from '@/components/ui/ConfirmDialog'
 
 type ViewType = 'Dashboard' | 'Simulations' | 'Library' | 'Performance' | 'Settings'
 
@@ -19,15 +21,21 @@ export default function ProfileClient() {
   const { data: session, update } = useSession()
   const [activeView, setActiveView] = useState<ViewType>('Settings')
   const [isSaving, setIsSaving] = useState(false)
-  
+  const toast = useToast()
+  const confirm = useConfirm()
+
   const userName = session?.user?.name || 'Medical Student'
   const userRole = (session?.user as any)?.role === 'INSTRUCTOR' ? 'Clinical Instructor' : 'Medical Student'
   const userAvatar = (session?.user as any)?.avatarUrl || session?.user?.image || "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=2070&auto=format&fit=crop"
 
-  const handleLogout = () => {
-    if (confirm('คุณต้องการออกจากระบบใช่หรือไม่?')) {
-      signOut({ callbackUrl: '/login' })
-    }
+  const handleLogout = async () => {
+    const ok = await confirm({
+      title: 'ออกจากระบบ',
+      message: 'คุณต้องการออกจากระบบใช่หรือไม่?',
+      confirmLabel: 'ออกจากระบบ',
+      variant: 'danger',
+    })
+    if (ok) signOut({ callbackUrl: '/login' })
   }
 
   const [formData, setFormData] = useState({
@@ -70,11 +78,11 @@ export default function ProfileClient() {
             ...formData,
           }
         })
-        alert('บันทึกข้อมูลสำเร็จ')
+        toast.success('บันทึกสำเร็จ', 'อัปเดตข้อมูลโปรไฟล์เรียบร้อยแล้ว')
       }
     } catch (err) {
       console.error(err)
-      alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล')
+      toast.error('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่')
     } finally {
       setIsSaving(false)
     }
@@ -195,7 +203,7 @@ export default function ProfileClient() {
                     <img alt="Profile" className="w-full h-full object-cover" src={userAvatar} />
                   </div>
                   <button
-                    onClick={() => alert('อัพโหลดรูปโปรไฟล์จะเปิดให้ใช้งานเร็วๆ นี้')}
+                    onClick={() => toast.info('Coming Soon', 'อัพโหลดรูปโปรไฟล์จะเปิดให้ใช้งานเร็วๆ นี้')}
                     className="absolute bottom-0 right-0 bg-primary text-on-primary w-12 h-12 rounded-2xl flex items-center justify-center shadow-xl border-4 border-surface hover:scale-110 transition-transform active:scale-95"
                   >
                     <span className="material-symbols-outlined !text-xl">edit</span>
@@ -353,7 +361,7 @@ export default function ProfileClient() {
                       <h5 className="font-black text-on-surface tracking-tight mb-2">{card.title}</h5>
                       <p className="text-xs text-on-surface-variant font-medium leading-relaxed mb-8">{card.desc}</p>
                       <button
-                        onClick={() => alert(card.title === 'Change Password' ? 'เปลี่ยนรหัสผ่านจะเปิดให้ใช้งานเร็วๆ นี้' : 'การจัดการ 2FA จะเปิดให้ใช้งานเร็วๆ นี้')}
+                        onClick={() => toast.info('Coming Soon', card.title === 'Change Password' ? 'เปลี่ยนรหัสผ่านจะเปิดให้ใช้งานเร็วๆ นี้' : 'การจัดการ 2FA จะเปิดให้ใช้งานเร็วๆ นี้')}
                         className={cn(
                           "w-full py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all active:scale-95 border",
                           card.primary ? "bg-surface-container text-on-surface-variant border-transparent" : "border-primary text-primary hover:bg-primary/5"

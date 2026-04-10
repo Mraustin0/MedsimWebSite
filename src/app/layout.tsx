@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/components/AuthProvider'
+import { ToastProvider } from '@/components/ui/Toast'
+import { ConfirmProvider } from '@/components/ui/ConfirmDialog'
 
 export const metadata: Metadata = {
   title: 'MedSim — ระบบจำลองการซักประวัติผู้ป่วย',
@@ -21,7 +23,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body>
         <AuthProvider>
-          {children}
+          <ConfirmProvider>
+            <ToastProvider>
+              {children}
+            </ToastProvider>
+          </ConfirmProvider>
         </AuthProvider>
       </body>
     </html>

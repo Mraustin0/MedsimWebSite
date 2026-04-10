@@ -4,9 +4,11 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { cn } from '@/components/ui/cn'
+import { useToast } from '@/components/ui/Toast'
 
 export default function LoginPage() {
   const router = useRouter()
+  const toast = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -137,7 +139,7 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex justify-between items-center px-0.5">
                 <label className="text-[11px] font-bold uppercase tracking-[0.15em] text-[#595c5d]/80" htmlFor="password">Password</label>
-                <button onClick={() => alert('กรุณาติดต่อผู้ดูแลระบบเพื่อรีเซ็ตรหัสผ่าน')} className="text-[11px] font-bold uppercase tracking-wider text-[#006948] hover:text-[#005b3e] transition-colors">Forgot?</button>
+                <button onClick={() => toast.info('Reset Password', 'กรุณาติดต่อผู้ดูแลระบบเพื่อรีเซ็ตรหัสผ่าน')} className="text-[11px] font-bold uppercase tracking-wider text-[#006948] hover:text-[#005b3e] transition-colors">Forgot?</button>
               </div>
               <div className="relative">
                 <input 

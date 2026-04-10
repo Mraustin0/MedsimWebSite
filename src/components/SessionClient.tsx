@@ -28,7 +28,7 @@ export default function SessionClient({ scenario }: Props) {
   const { oldcarts, checkedCount, detectFromMessage, toggle, reset: resetOldcarts } = useOldcarts()
 
   const {
-    messages, input, setInput, isLoading, feedback,
+    messages, input, setInput, isLoading, feedback, chatError,
     hints, userQuestionCount,
     initSession, sendMessage, endSession, resetSession,
   } = useSession({
@@ -96,6 +96,20 @@ export default function SessionClient({ scenario }: Props) {
             isLoading={isLoading}
             scenario={scenario}
           />
+
+          {/* Chat Error Banner */}
+          {chatError && (
+            <div className="mx-4 mb-2 flex items-center gap-3 px-4 py-3 bg-error-container/80 border border-error/20 rounded-2xl text-on-error-container backdrop-blur-sm animate-fade-in">
+              <span className="material-symbols-outlined !text-lg flex-shrink-0">error</span>
+              <p className="text-sm font-semibold flex-1">{chatError}</p>
+              <button
+                onClick={() => initSession()}
+                className="text-xs font-black uppercase tracking-wider px-3 py-1.5 bg-error text-on-error rounded-xl hover:opacity-90 active:scale-95 transition-all"
+              >
+                ลองใหม่
+              </button>
+            </div>
+          )}
 
           {/* Mobile-only: Patient Info Slide-up (logic omitted for brevity, but can be added) */}
           {showPatientInfo && (

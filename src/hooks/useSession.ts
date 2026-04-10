@@ -23,11 +23,13 @@ export function useSession({ scenario, onMessageSent }: UseSessionOptions) {
   const [isLoading, setIsLoading] = useState(false)
   const [sessionEnded, setSessionEnded] = useState(false)
   const [feedback, setFeedback] = useState<Feedback | null>(null)
+  const [chatError, setChatError] = useState<string | null>(null)
   const startTimeRef = useRef<number>(Date.now())
   const dbSessionIdRef = useRef<string | null>(null)
 
   const initSession = useCallback(async () => {
     setIsLoading(true)
+    setChatError(null)
     try {
       // Create session in DB
       const sessionRes = await fetch('/api/session', {
@@ -50,6 +52,12 @@ export function useSession({ scenario, onMessageSent }: UseSessionOptions) {
         }),
       })
       const data = await res.json()
+
+      if (!res.ok || !data.message) {
+        setChatError(data.message ?? 'ไม่สามารถเชื่อมต่อ AI ได้ กรุณาลองใหม่')
+        return
+      }
+
       const aiMsg: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
@@ -59,6 +67,7 @@ export function useSession({ scenario, onMessageSent }: UseSessionOptions) {
       setMessages([aiMsg])
     } catch (e) {
       console.error(e)
+      setChatError('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองใหม่')
     } finally {
       setIsLoading(false)
     }
@@ -68,6 +77,7 @@ export function useSession({ scenario, onMessageSent }: UseSessionOptions) {
     if (!input.trim() || isLoading || sessionEnded) return
     const text = input.trim()
     setInput('')
+    setChatError(null)
 
     const userMsg: Message = {
       id: crypto.randomUUID(),
@@ -92,6 +102,12 @@ export function useSession({ scenario, onMessageSent }: UseSessionOptions) {
         }),
       })
       const data = await res.json()
+
+      if (!res.ok || !data.message) {
+        setChatError(data.message ?? 'AI ไม่ตอบสนอง กรุณาลองใหม่')
+        return
+      }
+
       const aiMsg: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
@@ -101,6 +117,7 @@ export function useSession({ scenario, onMessageSent }: UseSessionOptions) {
       setMessages((prev) => [...prev, aiMsg])
     } catch (e) {
       console.error(e)
+      setChatError('เกิดข้อผิดพลาดในการส่งข้อความ กรุณาลองใหม่')
     } finally {
       setIsLoading(false)
     }
@@ -137,6 +154,7 @@ export function useSession({ scenario, onMessageSent }: UseSessionOptions) {
     setFeedback(null)
     setSessionEnded(false)
     setMessages([])
+    setChatError(null)
     startTimeRef.current = Date.now()
     dbSessionIdRef.current = null
   }, [])
@@ -150,6 +168,7 @@ export function useSession({ scenario, onMessageSent }: UseSessionOptions) {
     isLoading,
     sessionEnded,
     feedback,
+    chatError,
     hints: HINTS,
     userQuestionCount,
     initSession,

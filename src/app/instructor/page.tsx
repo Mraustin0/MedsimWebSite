@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { DifficultyLevel } from '@/types'
 import { cn } from '@/components/ui/cn'
+import { useToast } from '@/components/ui/Toast'
+import { useConfirm } from '@/components/ui/ConfirmDialog'
 
 type InstructorView = 'Dashboard' | 'Scenarios' | 'Create'
 
@@ -40,13 +42,18 @@ export default function InstructorPage() {
   const { data: session } = useSession()
   const [activeView, setActiveView] = useState<InstructorView>('Dashboard')
   const [editingScenario, setEditingScenario] = useState<ScenarioRecord | null>(null)
+  const confirm = useConfirm()
 
   const userName = session?.user?.name || 'Instructor'
 
-  const handleLogout = () => {
-    if (confirm('คุณต้องการออกจากระบบใช่หรือไม่?')) {
-      signOut({ callbackUrl: '/login' })
-    }
+  const handleLogout = async () => {
+    const ok = await confirm({
+      title: 'ออกจากระบบ',
+      message: 'คุณต้องการออกจากระบบใช่หรือไม่?',
+      confirmLabel: 'ออกจากระบบ',
+      variant: 'danger',
+    })
+    if (ok) signOut({ callbackUrl: '/login' })
   }
 
   const handleEdit = (s: ScenarioRecord) => {
@@ -128,30 +135,29 @@ export default function InstructorPage() {
       </aside>
 
       {/* ===== MAIN CONTENT ===== */}
-      <div className="ml-0 lg:ml-[72px] min-h-screen flex flex-col relative transition-all duration-500">
+      <div className="ml-0 lg:ml-[72px] min-h-screen relative">
         {/* Top Bar */}
-        <header className="sticky top-0 z-40 w-full bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 flex justify-between items-center px-6 lg:px-10 py-4">
-          <div className="flex items-center gap-3">
-            <span className="px-3 py-1 bg-secondary-container/20 text-on-secondary-container text-[10px] font-black uppercase tracking-widest rounded-full border border-secondary-container/10">Faculty</span>
-          </div>
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-4 pl-6 border-l border-outline-variant/10 cursor-pointer" onClick={() => router.push('/profile')}>
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-black text-on-surface tracking-tight leading-none mb-1">{userName}</p>
-                <p className="text-[10px] text-secondary font-bold uppercase tracking-widest">Instructor</p>
-              </div>
-              <div className="w-10 h-10 rounded-2xl bg-secondary-container flex items-center justify-center shadow-lg shadow-secondary/5 border border-secondary/10 overflow-hidden">
-                {session?.user?.image ? (
-                  <img src={session.user.image} alt={userName} className="w-full h-full object-cover" />
-                ) : (
-                  <span className="material-symbols-outlined !text-2xl text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
-                )}
-              </div>
+        <header className="sticky top-0 z-40 w-full bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 flex justify-between items-center px-4 lg:px-10 py-3.5 gap-4">
+          <span className="px-3 py-1 bg-secondary-container/20 text-secondary text-[10px] font-black uppercase tracking-widest rounded-full border border-secondary/10 shrink-0">Faculty</span>
+          <div
+            className="flex items-center gap-3 cursor-pointer group"
+            onClick={() => router.push('/profile')}
+          >
+            <div className="text-right hidden sm:block">
+              <p className="text-sm font-black text-on-surface tracking-tight leading-none">{userName}</p>
+              <p className="text-[10px] text-secondary font-bold uppercase tracking-widest">Instructor</p>
+            </div>
+            <div className="w-9 h-9 rounded-2xl bg-secondary-container flex items-center justify-center shadow-md border border-secondary/10 overflow-hidden group-hover:scale-105 transition-transform">
+              {session?.user?.image ? (
+                <img src={session.user.image} alt={userName} className="w-full h-full object-cover" />
+              ) : (
+                <span className="material-symbols-outlined !text-xl text-secondary" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
+              )}
             </div>
           </div>
         </header>
 
-        <main className="flex-1 pb-24 lg:pb-0">
+        <main className="pb-28 lg:pb-0">
           {renderContent()}
         </main>
 
@@ -207,87 +213,92 @@ function InstructorDashboard({ setActiveView }: { setActiveView: (v: InstructorV
   }, [])
 
   return (
-    <div className="p-6 lg:p-10 space-y-10 animate-fade-in">
+    <div className="px-5 py-4 lg:px-10 lg:py-10 space-y-5 lg:space-y-8 animate-fade-in max-w-[900px]">
       {/* Welcome */}
-      <section className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8">
-        <div className="space-y-4">
-          <span className="px-4 py-1.5 bg-secondary-container/40 text-on-secondary-container text-[11px] font-black tracking-[0.2em] uppercase rounded-full border border-secondary/10">
-            Instructor Portal
-          </span>
-          <h2 className="text-5xl font-black tracking-tighter text-on-surface leading-none">
-            Welcome, <span className="text-secondary">{firstName}.</span>
-          </h2>
-          <p className="text-lg text-on-surface-variant max-w-xl leading-relaxed font-medium">
-            จัดการ scenarios และติดตามผลนักศึกษาได้ที่นี่
-          </p>
-        </div>
+      <section className="space-y-1 pt-0.5 lg:pt-1">
+        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-secondary/70">Instructor Portal</p>
+        <h2 className="text-2xl lg:text-5xl font-black tracking-tighter text-on-surface leading-tight">
+          Welcome, <span className="text-secondary">{firstName}.</span>
+        </h2>
+        <p className="text-xs lg:text-base text-on-surface-variant font-medium">
+          จัดการ scenarios และติดตามผลนักศึกษาได้ที่นี่
+        </p>
       </section>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      {/* Stat Cards — always 3 cols */}
+      <div className="grid grid-cols-3 gap-3 lg:gap-6">
         {[
-          { icon: 'description', label: 'Scenarios', value: stats?.totalScenarios ?? 0, color: 'text-secondary' },
-          { icon: 'group', label: 'Total Sessions', value: stats?.totalSessions ?? 0, color: 'text-primary' },
-          { icon: 'psychology', label: 'Avg Score', value: `${stats?.avgScore ?? 0}%`, color: 'text-tertiary' },
-        ].map(({ icon, label, value, color }) => (
-          <div key={label} className="bg-surface-container-lowest rounded-[2.5rem] p-8 premium-shadow border border-outline-variant/5 space-y-3">
-            <span className={cn('material-symbols-outlined !text-3xl', color)} style={{ fontVariationSettings: "'FILL' 1" }}>{icon}</span>
+          { icon: 'description', label: 'Scenarios', value: stats?.totalScenarios ?? 0, color: 'text-secondary', bg: 'bg-secondary/8' },
+          { icon: 'group', label: 'Sessions', value: stats?.totalSessions ?? 0, color: 'text-primary', bg: 'bg-primary/8' },
+          { icon: 'psychology', label: 'Avg Score', value: `${stats?.avgScore ?? 0}%`, color: 'text-tertiary', bg: 'bg-tertiary/8' },
+        ].map(({ icon, label, value, color, bg }) => (
+          <div key={label} className="bg-surface-container-lowest rounded-2xl lg:rounded-3xl p-3 lg:p-7 border border-outline-variant/5 shadow-sm space-y-1.5 lg:space-y-3">
+            <div className={cn('w-8 h-8 lg:w-11 lg:h-11 rounded-xl lg:rounded-2xl flex items-center justify-center', bg)}>
+              <span className={cn('material-symbols-outlined !text-lg lg:!text-2xl', color)} style={{ fontVariationSettings: "'FILL' 1" }}>{icon}</span>
+            </div>
             <div>
-              <p className="text-[10px] font-black text-on-surface-variant/40 uppercase tracking-widest mb-1">{label}</p>
-              <p className="text-3xl font-black text-on-surface tracking-tight">{value}</p>
+              <p className="text-[8px] lg:text-[10px] font-black text-on-surface-variant/40 uppercase tracking-widest mb-0.5">{label}</p>
+              <p className="text-xl lg:text-3xl font-black text-on-surface tracking-tight">{value}</p>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-12 gap-8">
-        <div className="col-span-12 lg:col-span-5 bg-gradient-to-br from-secondary to-secondary-dim rounded-[3rem] p-10 shadow-2xl shadow-secondary/30 text-on-secondary flex flex-col justify-between relative overflow-hidden group">
-          <div className="absolute -right-8 -top-8 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all duration-1000" />
-          <div className="relative z-10 space-y-6">
-            <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-[1.5rem] flex items-center justify-center border border-white/20 shadow-xl">
-              <span className="material-symbols-outlined !text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>add_circle</span>
+      {/* Bottom section */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-8">
+        {/* Create CTA — horizontal on mobile */}
+        <div className="lg:col-span-5 bg-gradient-to-br from-secondary to-secondary-dim rounded-2xl lg:rounded-[3rem] p-4 lg:p-10 shadow-xl shadow-secondary/20 text-on-secondary relative overflow-hidden group">
+          <div className="absolute -right-8 -top-8 w-48 h-48 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all duration-1000" />
+          <div className="relative z-10 flex flex-row lg:flex-col gap-4 items-center lg:items-start">
+            <div className="w-10 h-10 lg:w-16 lg:h-16 bg-white/20 backdrop-blur-xl rounded-xl lg:rounded-[1.5rem] flex items-center justify-center border border-white/20 shadow-xl shrink-0">
+              <span className="material-symbols-outlined !text-xl lg:!text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>add_circle</span>
             </div>
-            <h3 className="text-3xl font-black leading-tight tracking-tighter">Create New<br />Scenario</h3>
-            <p className="text-on-secondary/80 text-sm font-medium leading-relaxed">สร้างบททดสอบใหม่ให้นักศึกษาฝึกซักประวัติ</p>
+            <div className="flex-1 lg:space-y-2">
+              <h3 className="text-base lg:text-3xl font-black leading-tight tracking-tighter">Create New Scenario</h3>
+              <p className="text-on-secondary/70 text-xs lg:text-sm font-medium hidden lg:block">สร้างบททดสอบใหม่ให้นักศึกษาฝึกซักประวัติ</p>
+            </div>
+            <button
+              onClick={() => setActiveView('Create')}
+              className="shrink-0 lg:hidden px-4 py-2 bg-white/20 border border-white/30 text-on-secondary font-black text-[10px] uppercase tracking-wider rounded-xl active:scale-95 transition-all"
+            >
+              เริ่ม
+            </button>
           </div>
           <button
             onClick={() => setActiveView('Create')}
-            className="relative z-10 mt-10 w-full py-5 bg-white text-secondary font-black uppercase tracking-[0.2em] rounded-2xl hover:shadow-2xl hover:scale-[1.02] transition-all active:scale-95 text-xs"
+            className="relative z-10 mt-8 w-full py-4 bg-white text-secondary font-black uppercase tracking-[0.15em] rounded-2xl hover:shadow-xl hover:scale-[1.01] transition-all active:scale-95 text-xs hidden lg:block"
           >
             Get Started
           </button>
         </div>
 
         {/* Recent Scenarios */}
-        <div className="col-span-12 lg:col-span-7 space-y-6">
-          <div className="flex justify-between items-center px-2">
-            <h3 className="text-2xl font-black text-on-surface tracking-tight">Recent Scenarios</h3>
-            <button onClick={() => setActiveView('Scenarios')} className="text-secondary text-xs font-black uppercase tracking-widest hover:underline">View All</button>
+        <div className="lg:col-span-7 space-y-3 lg:space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-base lg:text-2xl font-black text-on-surface tracking-tight">Recent Scenarios</h3>
+            <button onClick={() => setActiveView('Scenarios')} className="text-secondary text-[10px] lg:text-xs font-black uppercase tracking-widest hover:underline">View All</button>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-2 lg:space-y-3">
             {stats?.recentScenarios && stats.recentScenarios.length > 0 ? (
               stats.recentScenarios.map((s) => (
-                <div key={s.id} className="group flex items-center gap-6 p-6 bg-surface-container-lowest rounded-[2.5rem] hover:shadow-xl transition-all duration-500 border border-outline-variant/5">
-                  <div className="w-14 h-14 rounded-3xl bg-surface-container flex items-center justify-center text-2xl shadow-inner">
+                <div key={s.id} className="flex items-center gap-3 lg:gap-4 p-3 lg:p-5 bg-surface-container-lowest rounded-xl lg:rounded-3xl hover:shadow-md transition-all border border-outline-variant/5">
+                  <div className="w-9 h-9 lg:w-11 lg:h-11 rounded-xl lg:rounded-2xl bg-surface-container flex items-center justify-center text-lg lg:text-xl shrink-0">
                     {s.gender === 'male' ? '👨' : '👩'}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-lg font-black text-on-surface tracking-tight truncate">{s.name}</p>
-                    <p className="text-sm text-on-surface-variant/60 font-bold truncate">{s.chiefComplaint}</p>
+                    <p className="text-xs lg:text-sm font-black text-on-surface tracking-tight truncate">{s.name}</p>
+                    <p className="text-[10px] lg:text-xs text-on-surface-variant/60 font-semibold truncate">{s.chiefComplaint}</p>
                   </div>
-                  <div className="hidden sm:block">
-                    <span className={cn(
-                      'px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest',
-                      s.difficulty === 'hard' ? 'bg-error/10 text-error' : s.difficulty === 'medium' ? 'bg-tertiary/10 text-tertiary' : 'bg-primary/10 text-primary'
-                    )}>{s.difficulty}</span>
-                  </div>
+                  <span className={cn(
+                    'px-2 lg:px-2.5 py-0.5 lg:py-1 rounded-full text-[9px] lg:text-[10px] font-black uppercase tracking-wider shrink-0',
+                    s.difficulty === 'hard' ? 'bg-error/10 text-error' : s.difficulty === 'medium' ? 'bg-tertiary/10 text-tertiary' : 'bg-primary/10 text-primary'
+                  )}>{s.difficulty}</span>
                 </div>
               ))
             ) : (
-              <div className="py-16 flex flex-col items-center justify-center bg-surface-container/20 rounded-[3rem] border-2 border-dashed border-outline-variant/20">
-                <span className="material-symbols-outlined !text-5xl text-on-surface-variant/20 mb-3">description</span>
-                <p className="text-sm font-black text-on-surface-variant/40 uppercase tracking-[0.2em]">No scenarios yet</p>
+              <div className="py-8 lg:py-12 flex flex-col items-center justify-center bg-surface-container/20 rounded-2xl lg:rounded-3xl border-2 border-dashed border-outline-variant/20">
+                <span className="material-symbols-outlined !text-3xl lg:!text-4xl text-on-surface-variant/20 mb-2">description</span>
+                <p className="text-[10px] lg:text-xs font-black text-on-surface-variant/40 uppercase tracking-[0.2em]">No scenarios yet</p>
               </div>
             )}
           </div>
@@ -302,6 +313,8 @@ function ScenarioList({ onEdit }: { onEdit: (s: ScenarioRecord) => void }) {
   const [scenarios, setScenarios] = useState<ScenarioRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const toast = useToast()
+  const confirm = useConfirm()
 
   const load = () => {
     fetch('/api/scenarios')
@@ -313,13 +326,21 @@ function ScenarioList({ onEdit }: { onEdit: (s: ScenarioRecord) => void }) {
   useEffect(() => { load() }, [])
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`ลบ scenario "${name}" ใช่หรือไม่?`)) return
+    const ok = await confirm({
+      title: `ลบ Scenario`,
+      message: `ต้องการลบ "${name}" ใช่หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้`,
+      confirmLabel: 'ลบเลย',
+      variant: 'danger',
+    })
+    if (!ok) return
     setDeletingId(id)
     try {
       await fetch(`/api/scenarios/${id}`, { method: 'DELETE' })
       setScenarios((prev) => prev.filter((s) => s.id !== id))
-    } catch { alert('ลบไม่สำเร็จ') }
-    finally { setDeletingId(null) }
+      toast.success('ลบสำเร็จ', `ลบ scenario "${name}" เรียบร้อยแล้ว`)
+    } catch {
+      toast.error('ลบไม่สำเร็จ', 'เกิดข้อผิดพลาด กรุณาลองใหม่')
+    } finally { setDeletingId(null) }
   }
 
   if (loading) {
@@ -331,56 +352,49 @@ function ScenarioList({ onEdit }: { onEdit: (s: ScenarioRecord) => void }) {
   }
 
   return (
-    <div className="p-6 lg:p-10 space-y-10 animate-fade-in">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-        <div className="space-y-2">
-          <h1 className="text-5xl font-black tracking-tighter text-on-surface leading-none">
-            All <span className="text-secondary">Scenarios</span>
-          </h1>
-          <p className="text-lg text-on-surface-variant font-medium">{scenarios.length} scenarios created</p>
-        </div>
+    <div className="px-5 py-6 lg:px-10 lg:py-10 space-y-6 lg:space-y-10 animate-fade-in max-w-[900px]">
+      <header className="space-y-1 pt-1">
+        <h1 className="text-3xl lg:text-5xl font-black tracking-tighter text-on-surface leading-none">
+          All <span className="text-secondary">Scenarios</span>
+        </h1>
+        <p className="text-sm lg:text-base text-on-surface-variant font-medium">{scenarios.length} scenarios created</p>
       </header>
 
       <div className="space-y-4">
         {scenarios.map((s) => {
           const date = new Date(s.createdAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' })
           return (
-            <div key={s.id} className="flex items-center gap-6 p-6 bg-surface-container-lowest rounded-[2.5rem] border border-outline-variant/5 premium-shadow-md hover:shadow-xl transition-all group">
-              <div className="w-14 h-14 rounded-3xl bg-surface-container flex items-center justify-center text-2xl shadow-inner shrink-0">
+            <div key={s.id} className="flex items-center gap-4 p-4 lg:p-5 bg-surface-container-lowest rounded-2xl lg:rounded-3xl border border-outline-variant/5 shadow-sm hover:shadow-md transition-all group">
+              <div className="w-11 h-11 lg:w-13 lg:h-13 rounded-2xl bg-surface-container flex items-center justify-center text-xl shrink-0">
                 {s.gender === 'male' ? '👨' : '👩'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-lg font-black text-on-surface tracking-tight truncate">{s.name}, {s.age} ปี</p>
-                <p className="text-sm text-on-surface-variant/60 font-bold truncate">{s.chiefComplaint}</p>
-                <p className="text-[10px] text-on-surface-variant/40 font-bold mt-1">{date}{s.createdBy ? ` · by ${s.createdBy.name}` : ''}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm lg:text-base font-black text-on-surface tracking-tight truncate">{s.name}, {s.age} ปี</p>
+                  <span className={cn(
+                    'hidden sm:inline px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0',
+                    s.difficulty === 'hard' ? 'bg-error/10 text-error' : s.difficulty === 'medium' ? 'bg-tertiary/10 text-tertiary' : 'bg-primary/10 text-primary'
+                  )}>{s.difficulty}</span>
+                </div>
+                <p className="text-xs text-on-surface-variant/60 font-semibold truncate">{s.chiefComplaint}</p>
+                <p className="text-[10px] text-on-surface-variant/30 font-semibold mt-0.5 hidden sm:block">{date}{s.createdBy ? ` · by ${s.createdBy.name}` : ''}</p>
               </div>
-              <div className="hidden sm:flex items-center gap-3 shrink-0">
-                {s.tags.slice(0, 2).map((t) => (
-                  <span key={t} className="px-3 py-1 bg-surface-container rounded-full text-[10px] font-black uppercase tracking-widest text-on-surface-variant/60">{t}</span>
-                ))}
-                <span className={cn(
-                  'px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest',
-                  s.difficulty === 'hard' ? 'bg-error/10 text-error' : s.difficulty === 'medium' ? 'bg-tertiary/10 text-tertiary' : 'bg-primary/10 text-primary'
-                )}>{s.difficulty}</span>
-              </div>
-              {/* Actions */}
-              <div className="flex items-center gap-2 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+              {/* Actions — always visible on mobile, hover on desktop */}
+              <div className="flex items-center gap-1.5 shrink-0 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={() => onEdit(s)}
-                  className="w-10 h-10 rounded-2xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-secondary/10 hover:text-secondary transition-all"
-                  title="Edit"
+                  className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-secondary/10 hover:text-secondary transition-all active:scale-95"
                 >
-                  <span className="material-symbols-outlined !text-lg">edit</span>
+                  <span className="material-symbols-outlined !text-base">edit</span>
                 </button>
                 <button
                   onClick={() => handleDelete(s.id, s.name)}
                   disabled={deletingId === s.id}
-                  className="w-10 h-10 rounded-2xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-error/10 hover:text-error transition-all disabled:opacity-40"
-                  title="Delete"
+                  className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-error/10 hover:text-error transition-all disabled:opacity-40 active:scale-95"
                 >
                   {deletingId === s.id
-                    ? <div className="w-4 h-4 border-2 border-error border-t-transparent rounded-full animate-spin" />
-                    : <span className="material-symbols-outlined !text-lg">delete</span>
+                    ? <div className="w-3.5 h-3.5 border-2 border-error border-t-transparent rounded-full animate-spin" />
+                    : <span className="material-symbols-outlined !text-base">delete</span>
                   }
                 </button>
               </div>
@@ -405,6 +419,9 @@ const TEMPLATES = [
     label: 'Chest Pain',
     icon: 'cardiology',
     data: {
+      name: 'นายสมชาย ใจดี',
+      age: '52',
+      gender: 'male' as 'male' | 'female',
       chiefComplaint: 'เจ็บหน้าอก',
       tags: 'cardiology, emergency',
       difficulty: 'hard' as DifficultyLevel,
@@ -424,6 +441,9 @@ const TEMPLATES = [
     label: 'Abdominal Pain',
     icon: 'gastroenterology',
     data: {
+      name: 'นางสาวสุดา แก้วใส',
+      age: '28',
+      gender: 'female' as 'male' | 'female',
       chiefComplaint: 'ปวดท้อง',
       tags: 'gastroenterology',
       difficulty: 'medium' as DifficultyLevel,
@@ -443,6 +463,9 @@ const TEMPLATES = [
     label: 'Headache',
     icon: 'neurology',
     data: {
+      name: 'นายวิทยา มีสุข',
+      age: '35',
+      gender: 'male' as 'male' | 'female',
       chiefComplaint: 'ปวดหัว',
       tags: 'neurology',
       difficulty: 'easy' as DifficultyLevel,
@@ -493,6 +516,7 @@ function CreateScenario({
   const isEdit = !!editing
   const [isLoading, setIsLoading] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
+  const toast = useToast()
   const [formData, setFormData] = useState<FormData>({
     name: editing?.name || '',
     age: editing?.age?.toString() || '',
@@ -509,15 +533,27 @@ function CreateScenario({
     setFormData((prev) => ({ ...prev, [field]: val }))
 
   const applyTemplate = (t: typeof TEMPLATES[0]) => {
+    set('name', t.data.name)
+    set('age', t.data.age)
+    set('gender', t.data.gender)
     set('chiefComplaint', t.data.chiefComplaint)
     set('tags', t.data.tags)
     set('difficulty', t.data.difficulty)
     setOldcarts(t.data.oldcarts)
+    // Auto-generate system prompt after template apply
+    setTimeout(() => {
+      const genBtn = document.querySelector('button[data-generate]') as HTMLButtonElement
+      if (genBtn) genBtn.click()
+    }, 300)
   }
 
   const handleGenerate = async () => {
-    if (!formData.chiefComplaint) { alert('กรอก Chief Complaint ก่อน'); return }
+    if (!formData.chiefComplaint) {
+      toast.warning('กรอกข้อมูลไม่ครบ', 'กรุณากรอก Chief Complaint ก่อนสร้าง Prompt')
+      return
+    }
     setIsGenerating(true)
+    toast.info('กำลังสร้าง...', 'AI กำลังสร้าง System Prompt ให้')
     try {
       const res = await fetch('/api/scenarios/generate', {
         method: 'POST',
@@ -531,9 +567,13 @@ function CreateScenario({
         }),
       })
       const data = await res.json()
-      if (data.systemPrompt) set('systemPrompt', data.systemPrompt)
-    } catch { alert('Generate ไม่สำเร็จ') }
-    finally { setIsGenerating(false) }
+      if (data.systemPrompt) {
+        set('systemPrompt', data.systemPrompt)
+        toast.success('สร้างสำเร็จ', 'AI สร้าง System Prompt เรียบร้อยแล้ว')
+      }
+    } catch {
+      toast.error('Generate ไม่สำเร็จ', 'เกิดข้อผิดพลาดในการสร้าง Prompt')
+    } finally { setIsGenerating(false) }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -548,9 +588,10 @@ function CreateScenario({
         body: JSON.stringify(formData),
       })
       if (!res.ok) throw new Error('Failed')
+      toast.success(isEdit ? 'อัปเดตสำเร็จ' : 'สร้างสำเร็จ', isEdit ? 'แก้ไข Scenario เรียบร้อยแล้ว' : 'สร้าง Scenario ใหม่เรียบร้อยแล้ว')
       onCreated()
     } catch {
-      alert('เกิดข้อผิดพลาด')
+      toast.error('เกิดข้อผิดพลาด', 'ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่')
     } finally {
       setIsLoading(false)
     }
@@ -559,18 +600,18 @@ function CreateScenario({
   const inputCls = 'w-full px-4 lg:px-5 py-3 lg:py-3.5 bg-surface-container/50 border border-outline-variant/15 rounded-2xl text-sm focus:ring-2 focus:ring-secondary/20 focus:border-secondary/30 transition-all placeholder:text-on-surface-variant/30 outline-none'
 
   return (
-    <div className="p-6 lg:p-10 animate-fade-in">
-      <header className="mb-8 lg:mb-10 flex items-start justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-5xl font-black tracking-tighter text-on-surface leading-none">
+    <div className="px-5 py-6 lg:px-10 lg:py-10 animate-fade-in max-w-[900px]">
+      <header className="mb-6 lg:mb-10 flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-3xl lg:text-5xl font-black tracking-tighter text-on-surface leading-tight">
             {isEdit ? 'Edit' : 'Create'} <span className="text-secondary">Scenario</span>
           </h1>
-          <p className="text-lg text-on-surface-variant font-medium">
+          <p className="text-sm lg:text-base text-on-surface-variant font-medium">
             {isEdit ? `Editing: ${editing!.name}` : 'Configure the AI patient and clinical data.'}
           </p>
         </div>
         {isEdit && (
-          <button onClick={onCancel} className="mt-1 px-4 py-2 rounded-2xl bg-surface-container text-on-surface-variant font-bold text-sm hover:bg-surface-container-high transition-all">
+          <button onClick={onCancel} className="mt-1 px-4 py-2 rounded-2xl bg-surface-container text-on-surface-variant font-bold text-sm hover:bg-surface-container-high transition-all shrink-0">
             Cancel
           </button>
         )}
@@ -592,10 +633,10 @@ function CreateScenario({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="max-w-4xl space-y-6">
+      <form id="scenario-form" onSubmit={handleSubmit} className="max-w-4xl space-y-4 lg:space-y-6">
 
         {/* Section 1: Patient Info */}
-        <div className="bg-surface-container-lowest/80 backdrop-blur-xl border border-outline-variant/10 rounded-[2.5rem] p-6 lg:p-10 premium-shadow-md space-y-6">
+        <div className="bg-surface-container-lowest/80 backdrop-blur-xl border border-outline-variant/10 rounded-2xl lg:rounded-[2.5rem] p-4 lg:p-10 premium-shadow-md space-y-4 lg:space-y-6">
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary font-black text-[10px]">01</div>
             <h3 className="text-xs font-black uppercase tracking-[0.2em] text-on-surface-variant/70">Patient Info</h3>
@@ -647,15 +688,15 @@ function CreateScenario({
         </div>
 
         {/* Section 2: OLDCARTS Expected Answers */}
-        <div className="bg-surface-container-lowest/80 backdrop-blur-xl border border-outline-variant/10 rounded-[2.5rem] p-6 lg:p-10 premium-shadow-md space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+        <div className="bg-surface-container-lowest/80 backdrop-blur-xl border border-outline-variant/10 rounded-2xl lg:rounded-[2.5rem] p-4 lg:p-10 premium-shadow-md space-y-4 lg:space-y-6">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2 lg:gap-3">
               <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-black text-[10px]">02</div>
-              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-on-surface-variant/70">OLDCARTS — Expected Answers</h3>
+              <h3 className="text-[10px] lg:text-xs font-black uppercase tracking-[0.15em] lg:tracking-[0.2em] text-on-surface-variant/70">OLDCARTS — Expected Answers</h3>
             </div>
-            <span className="text-[10px] text-on-surface-variant/40 font-bold">AI จะเปิดเผยข้อมูลเหล่านี้เมื่อถูกถาม</span>
+            <span className="text-[9px] lg:text-[10px] text-on-surface-variant/40 font-bold">AI จะเปิดเผยข้อมูลเหล่านี้เมื่อถูกถาม</span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:gap-4">
             {OLDCARTS_FIELDS.map(({ key, label, placeholder }) => (
               <div key={key} className="space-y-1.5">
                 <label className="text-[11px] font-black text-on-surface-variant/70 ml-1 uppercase tracking-wider">{label}</label>
@@ -669,13 +710,13 @@ function CreateScenario({
         </div>
 
         {/* Section 3: AI System Prompt */}
-        <div className="bg-surface-container-lowest/80 backdrop-blur-xl border border-outline-variant/10 rounded-[2.5rem] p-6 lg:p-10 premium-shadow-md space-y-6">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-3">
+        <div className="bg-surface-container-lowest/80 backdrop-blur-xl border border-outline-variant/10 rounded-2xl lg:rounded-[2.5rem] p-4 lg:p-10 premium-shadow-md space-y-4 lg:space-y-6">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-2 lg:gap-3">
               <div className="w-7 h-7 rounded-lg bg-tertiary/10 flex items-center justify-center text-tertiary font-black text-[10px]">03</div>
-              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-on-surface-variant/70">AI System Prompt</h3>
+              <h3 className="text-[10px] lg:text-xs font-black uppercase tracking-[0.15em] lg:tracking-[0.2em] text-on-surface-variant/70">AI System Prompt</h3>
             </div>
-            <button type="button" onClick={handleGenerate} disabled={isGenerating}
+            <button type="button" data-generate onClick={handleGenerate} disabled={isGenerating}
               className="flex items-center gap-2 px-5 py-2.5 bg-tertiary/10 text-tertiary rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-tertiary/20 transition-all active:scale-95 disabled:opacity-50">
               {isGenerating
                 ? <><div className="w-3 h-3 border-2 border-tertiary border-t-transparent rounded-full animate-spin" />Generating...</>
@@ -683,8 +724,8 @@ function CreateScenario({
               }
             </button>
           </div>
-          <textarea required rows={12} placeholder="กรอก OLDCARTS ด้านบนแล้วกด Generate with AI หรือเขียนเองก็ได้..."
-            className="w-full px-5 py-4 bg-surface-container/50 border border-outline-variant/15 rounded-3xl text-sm focus:ring-2 focus:ring-tertiary/20 focus:border-tertiary/30 transition-all resize-none font-mono placeholder:text-on-surface-variant/20 outline-none"
+          <textarea required rows={3} placeholder="กรอก OLDCARTS ด้านบนแล้วกด Generate with AI หรือเขียนเองก็ได้..."
+            className="w-full px-4 lg:px-5 py-3 lg:py-4 bg-surface-container/50 border border-outline-variant/15 rounded-2xl lg:rounded-3xl text-[11px] lg:text-sm focus:ring-2 focus:ring-tertiary/20 focus:border-tertiary/30 transition-all resize-y font-mono placeholder:text-on-surface-variant/20 outline-none min-h-[80px] lg:min-h-[280px]"
             value={formData.systemPrompt} onChange={(e) => set('systemPrompt', e.target.value)} />
           <div className="space-y-2">
             <label className="text-[11px] font-bold text-on-surface-variant/80 ml-1">Description (Optional)</label>
@@ -697,12 +738,12 @@ function CreateScenario({
         <div className="flex gap-4">
           {isEdit && (
             <button type="button" onClick={onCancel}
-              className="flex-1 py-5 rounded-[2rem] bg-surface-container text-on-surface-variant font-black uppercase tracking-[0.2em] transition-all active:scale-[0.98]">
+              className="flex-1 py-3.5 lg:py-5 rounded-2xl lg:rounded-[2rem] bg-surface-container text-on-surface-variant font-black uppercase tracking-[0.15em] lg:tracking-[0.2em] text-xs transition-all active:scale-[0.98]">
               Cancel
             </button>
           )}
           <button disabled={isLoading} type="submit"
-            className="flex-1 py-5 rounded-[2rem] bg-gradient-to-r from-secondary to-secondary-dim text-on-secondary font-black uppercase tracking-[0.2em] shadow-2xl shadow-secondary/30 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3">
+            className="flex-1 py-3.5 lg:py-5 rounded-2xl lg:rounded-[2rem] bg-gradient-to-r from-secondary to-secondary-dim text-on-secondary font-black uppercase tracking-[0.15em] lg:tracking-[0.2em] text-xs shadow-2xl shadow-secondary/30 active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3">
             {isLoading
               ? <><div className="w-5 h-5 border-2 border-on-secondary/30 border-t-on-secondary rounded-full animate-spin" />Saving...</>
               : isEdit ? 'Save Changes' : 'Deploy Scenario'
