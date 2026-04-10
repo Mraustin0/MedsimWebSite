@@ -137,26 +137,26 @@ export default function DashboardClient({ scenarios }: Props) {
       <div className="ml-0 lg:ml-[72px] min-h-screen flex flex-col relative transition-all duration-500">
         
         {/* TOP APP BAR: Fixed Profile Color & Design */}
-        <header className="sticky top-0 z-40 w-full bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 flex justify-between items-center px-6 lg:px-10 py-4">
-          <div className="flex items-center gap-4 flex-1 max-w-xl">
+        <header className="sticky top-0 z-40 w-full bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 flex justify-between items-center px-4 py-3 lg:px-10 lg:py-4">
+          <div className="hidden lg:flex items-center gap-4 flex-1 max-w-xl">
             <div className="relative w-full group">
               <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 text-xl transition-colors group-focus-within:text-primary">search</span>
-              <input 
-                className="w-full pl-12 pr-6 py-2.5 bg-surface-container/40 border border-transparent rounded-2xl text-sm focus:ring-4 focus:ring-primary/5 focus:border-primary/20 focus:bg-white transition-all outline-none placeholder:text-on-surface-variant/30" 
-                placeholder="Search cases..." 
+              <input
+                className="w-full pl-12 pr-6 py-2.5 bg-surface-container/40 border border-transparent rounded-2xl text-sm focus:ring-4 focus:ring-primary/5 focus:border-primary/20 focus:bg-white transition-all outline-none placeholder:text-on-surface-variant/30"
+                placeholder="Search cases..."
                 type="text"
               />
             </div>
           </div>
 
           <div className="flex items-center gap-6 lg:gap-8">
-            <button className="relative p-2.5 text-on-surface-variant hover:bg-surface-container rounded-2xl transition-all active:scale-95 group">
+            <button className="hidden lg:block relative p-2.5 text-on-surface-variant hover:bg-surface-container rounded-2xl transition-all active:scale-95 group">
               <span className="material-symbols-outlined !text-2xl">notifications</span>
               <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-error rounded-full border-2 border-surface"></span>
             </button>
-            
+
             {/* PROFILE BUG FIX: Clean, High-Contrast Design */}
-            <div className="flex items-center gap-4 pl-6 border-l border-outline-variant/10" onClick={handleProfileClick} style={{ cursor: 'pointer' }}>
+            <div className="flex items-center gap-4 pl-3 lg:pl-6 lg:border-l border-outline-variant/10" onClick={handleProfileClick} style={{ cursor: 'pointer' }}>
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-black text-on-surface tracking-tight leading-none mb-1">{userName}</p>
                 <p className="text-[10px] text-primary font-bold uppercase tracking-widest">{userRole}</p>
@@ -255,17 +255,17 @@ function DashboardView({ scenarios, setActiveView }: { scenarios: Scenario[]; se
   const patientCareScore = stats ? Math.min(100, Math.round((oldcartsAvg / 8) * 100 * 0.7 + stats.avgScore * 0.3)) : 0
 
   return (
-    <div className="p-6 lg:p-10 space-y-10 animate-fade-in">
+    <div className="p-4 lg:p-10 space-y-6 lg:space-y-10 animate-fade-in">
       {/* Welcome Hero */}
       <section className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-8">
-        <div className="space-y-4">
+        <div className="space-y-2 lg:space-y-4">
           <span className="px-4 py-1.5 bg-primary-container/40 text-on-primary-container text-[11px] font-black tracking-[0.2em] uppercase rounded-full border border-primary/10">
             Current Rotation: {specialty}
           </span>
-          <h2 className="text-5xl font-black tracking-tighter text-on-surface leading-none">
+          <h2 className="text-3xl lg:text-5xl font-black tracking-tighter text-on-surface leading-none">
             Welcome back, <span className="text-primary">{firstName}.</span>
           </h2>
-          <p className="text-lg text-on-surface-variant max-w-xl leading-relaxed font-medium">
+          <p className="text-sm lg:text-lg text-on-surface-variant max-w-xl leading-relaxed font-medium">
             {stats && stats.totalSessions > 0
               ? <>คุณทำไปแล้ว <span className="text-primary font-black">{stats.totalSessions}</span> sessions คะแนนเฉลี่ย <span className="text-primary font-black">{stats.avgScore}%</span></>
               : <>เริ่มฝึกซักประวัติกับ AI patient ได้เลย</>
@@ -273,8 +273,8 @@ function DashboardView({ scenarios, setActiveView }: { scenarios: Scenario[]; se
           </p>
         </div>
 
-        <div className="flex items-center gap-5 bg-surface-container-lowest p-6 rounded-[2.5rem] premium-shadow-md border border-outline-variant/5 group hover:scale-105 transition-transform duration-500">
-          <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary transition-colors group-hover:bg-primary group-hover:text-on-primary">
+        <div className="flex items-center gap-5 bg-surface-container-lowest p-4 lg:p-6 rounded-2xl lg:rounded-[2.5rem] premium-shadow-md border border-outline-variant/5 group hover:scale-105 transition-transform duration-500">
+          <div className="w-10 h-10 lg:w-14 lg:h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary transition-colors group-hover:bg-primary group-hover:text-on-primary">
             <span className="material-symbols-outlined !text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
           </div>
           <div>
@@ -285,14 +285,14 @@ function DashboardView({ scenarios, setActiveView }: { scenarios: Scenario[]; se
       </section>
 
       {/* Bento Grid */}
-      <div className="grid grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8">
         {/* Weekly Progress Chart */}
-        <div className="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-[3rem] p-8 lg:p-10 premium-shadow border border-outline-variant/5 relative overflow-hidden group">
+        <div className="col-span-12 lg:col-span-8 bg-surface-container-lowest rounded-[3rem] p-5 lg:p-10 premium-shadow border border-outline-variant/5 relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
-          
+
           <div className="relative z-10 flex flex-col h-full">
-            <div className="flex justify-between items-center mb-10">
-              <h3 className="text-2xl font-black text-on-surface tracking-tight">Weekly Progress</h3>
+            <div className="flex justify-between items-center mb-5 lg:mb-10">
+              <h3 className="text-lg lg:text-2xl font-black text-on-surface tracking-tight">Weekly Progress</h3>
               <div className="flex gap-2 p-1.5 bg-surface-container rounded-2xl">
                 <button
                   onClick={() => setWeeklyMode('practice')}
@@ -305,14 +305,14 @@ function DashboardView({ scenarios, setActiveView }: { scenarios: Scenario[]; se
               </div>
             </div>
             
-            <div className="flex-1 flex items-end justify-between gap-4 lg:gap-8 pb-4">
+            <div className="flex-1 flex items-end justify-between gap-2 lg:gap-8 pb-4">
               {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => {
                 const heights = weeklyData.map((v) => Math.max((v / weeklyMax) * 100, 5))
                 const todayIdx = new Date().getDay()
                 const isActive = i === (todayIdx === 0 ? 6 : todayIdx - 1)
                 return (
                   <div key={day} className="flex-1 flex flex-col items-center gap-4 group/bar">
-                    <div className="w-full bg-surface-container/50 rounded-2xl relative h-48 overflow-hidden transition-all group-hover/bar:bg-surface-container">
+                    <div className="w-full bg-surface-container/50 rounded-2xl relative h-28 lg:h-48 overflow-hidden transition-all group-hover/bar:bg-surface-container">
                       <div 
                         className={cn(
                           "absolute bottom-0 w-full transition-all duration-1000 ease-out rounded-t-lg",
@@ -333,29 +333,29 @@ function DashboardView({ scenarios, setActiveView }: { scenarios: Scenario[]; se
         </div>
 
         {/* Quick-Start Card */}
-        <div className="col-span-12 lg:col-span-4 cta-gradient rounded-[3rem] p-10 shadow-2xl shadow-primary/30 text-on-primary flex flex-col justify-between relative overflow-hidden group">
+        <div className="col-span-12 lg:col-span-4 cta-gradient rounded-[3rem] p-6 lg:p-10 shadow-2xl shadow-primary/30 text-on-primary flex flex-col justify-between relative overflow-hidden group">
           <div className="absolute -right-8 -top-8 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all duration-1000" />
 
           <div className="relative z-10 space-y-6">
-            <div className="w-16 h-16 bg-white/20 backdrop-blur-xl rounded-[1.5rem] flex items-center justify-center border border-white/20 shadow-xl">
+            <div className="w-12 h-12 lg:w-16 lg:h-16 bg-white/20 backdrop-blur-xl rounded-2xl lg:rounded-[1.5rem] flex items-center justify-center border border-white/20 shadow-xl">
               <span className="material-symbols-outlined !text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>play_circle</span>
             </div>
-            <h3 className="text-3xl font-black leading-tight tracking-tighter">Next Challenge: <br />{scenarios[0]?.chiefComplaint || 'Clinical Sim'}</h3>
-            <p className="text-on-primary/80 text-sm font-medium leading-relaxed">{scenarios[0]?.description?.slice(0, 80) || 'เริ่ม simulation ใหม่'}...</p>
+            <h3 className="text-xl lg:text-3xl font-black leading-tight tracking-tighter">Next Challenge: <br />{scenarios[0]?.chiefComplaint || 'Clinical Sim'}</h3>
+            <p className="text-on-primary/80 text-xs lg:text-sm font-medium leading-relaxed">{scenarios[0]?.description?.slice(0, 80) || 'เริ่ม simulation ใหม่'}...</p>
           </div>
 
           <button
             onClick={() => window.location.href = `/session/${scenarios[0]?.id}`}
-            className="relative z-10 mt-10 w-full py-5 bg-white text-primary font-black uppercase tracking-[0.2em] rounded-2xl hover:shadow-2xl hover:scale-[1.02] transition-all active:scale-95 text-xs"
+            className="relative z-10 mt-10 w-full py-4 lg:py-5 bg-white text-primary font-black uppercase tracking-[0.2em] rounded-2xl hover:shadow-2xl hover:scale-[1.02] transition-all active:scale-95 text-xs"
           >
             Start Simulation
           </button>
         </div>
 
         {/* Rotation Queue */}
-        <div className="col-span-12 lg:col-span-7 space-y-6">
+        <div className="col-span-12 lg:col-span-7 space-y-4">
           <div className="flex justify-between items-center px-2">
-            <h3 className="text-2xl font-black text-on-surface tracking-tight">Scenarios</h3>
+            <h3 className="text-xl lg:text-2xl font-black text-on-surface tracking-tight">Scenarios</h3>
             <button onClick={() => setActiveView('Simulations')} className="text-primary text-xs font-black uppercase tracking-widest hover:underline">View All</button>
           </div>
           <div className="space-y-4">
@@ -363,10 +363,10 @@ function DashboardView({ scenarios, setActiveView }: { scenarios: Scenario[]; se
               <div
                 key={s.id}
                 onClick={() => window.location.href = `/session/${s.id}`}
-                className="group flex items-center gap-6 p-6 bg-surface-container-lowest rounded-[2.5rem] hover:shadow-xl transition-all duration-500 border border-outline-variant/5 cursor-pointer"
+                className="group flex items-center gap-4 p-4 lg:p-6 bg-surface-container-lowest rounded-2xl lg:rounded-[2.5rem] hover:shadow-xl transition-all duration-500 border border-outline-variant/5 cursor-pointer"
               >
                 <div className="relative">
-                  <div className="w-16 h-16 rounded-3xl bg-surface-container flex items-center justify-center text-3xl shadow-inner text-on-surface-variant overflow-hidden">
+                  <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl lg:rounded-3xl bg-surface-container flex items-center justify-center text-3xl shadow-inner text-on-surface-variant overflow-hidden">
                     <span className="text-2xl">{s.gender === 'male' ? '👨' : '👩'}</span>
                   </div>
                   <div className={cn("absolute -bottom-2 -right-2 w-8 h-8 rounded-2xl border-4 border-surface flex items-center justify-center shadow-md",
@@ -378,8 +378,8 @@ function DashboardView({ scenarios, setActiveView }: { scenarios: Scenario[]; se
                   </div>
                 </div>
                 <div className="flex-1">
-                  <p className="text-lg font-black text-on-surface tracking-tight">{s.name}</p>
-                  <p className="text-sm text-on-surface-variant/60 font-bold">{s.chiefComplaint}</p>
+                  <p className="text-sm lg:text-lg font-black text-on-surface tracking-tight">{s.name}</p>
+                  <p className="text-xs lg:text-sm text-on-surface-variant/60 font-bold">{s.chiefComplaint}</p>
                 </div>
                 <div className="hidden sm:block text-right pr-8">
                   <p className="text-[10px] font-black text-on-surface-variant/30 uppercase tracking-[0.2em] mb-2">Difficulty</p>
@@ -391,7 +391,7 @@ function DashboardView({ scenarios, setActiveView }: { scenarios: Scenario[]; se
                     ))}
                   </div>
                 </div>
-                <button className="w-12 h-12 rounded-2xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-primary hover:text-on-primary transition-all group-hover:scale-110">
+                <button className="w-9 h-9 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-primary hover:text-on-primary transition-all group-hover:scale-110">
                   <span className="material-symbols-outlined">chevron_right</span>
                 </button>
               </div>
@@ -401,17 +401,17 @@ function DashboardView({ scenarios, setActiveView }: { scenarios: Scenario[]; se
 
         {/* Stats Column */}
         <div className="col-span-12 lg:col-span-5 flex flex-col gap-8">
-          <div className="bg-surface-container-low rounded-[3rem] p-8 space-y-8 flex-1">
-            <h3 className="text-xl font-black text-on-surface tracking-tight px-2">Performance Summary</h3>
+          <div className="bg-surface-container-low rounded-[3rem] p-5 lg:p-8 space-y-5 lg:space-y-8 flex-1">
+            <h3 className="text-base lg:text-xl font-black text-on-surface tracking-tight px-2">Performance Summary</h3>
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-surface-container-lowest p-6 rounded-[2rem] space-y-3 premium-shadow-md border border-outline-variant/5">
+              <div className="bg-surface-container-lowest p-4 lg:p-6 rounded-2xl lg:rounded-[2rem] space-y-3 premium-shadow-md border border-outline-variant/5">
                 <span className="material-symbols-outlined text-primary !text-3xl">psychology</span>
                 <div>
                   <p className="text-[10px] font-black text-on-surface-variant/40 uppercase tracking-widest mb-1">Avg. Accuracy</p>
                   <p className="text-2xl font-black text-on-surface tracking-tight">{stats?.avgScore ?? 0}%</p>
                 </div>
               </div>
-              <div className="bg-surface-container-lowest p-6 rounded-[2rem] space-y-3 premium-shadow-md border border-outline-variant/5">
+              <div className="bg-surface-container-lowest p-4 lg:p-6 rounded-2xl lg:rounded-[2rem] space-y-3 premium-shadow-md border border-outline-variant/5">
                 <span className="material-symbols-outlined text-tertiary !text-3xl">avg_pace</span>
                 <div>
                   <p className="text-[10px] font-black text-on-surface-variant/40 uppercase tracking-widest mb-1">Avg. Time</p>
@@ -420,7 +420,7 @@ function DashboardView({ scenarios, setActiveView }: { scenarios: Scenario[]; se
               </div>
             </div>
 
-            <div className="bg-white/60 backdrop-blur-md rounded-[2.5rem] p-8 border border-outline-variant/10 space-y-6">
+            <div className="bg-white/60 backdrop-blur-md rounded-2xl lg:rounded-[2.5rem] p-5 lg:p-8 border border-outline-variant/10 space-y-6">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-xs font-black uppercase tracking-widest text-on-surface">Skill Mastery</span>
                 <span className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline cursor-pointer">Report</span>
@@ -451,14 +451,14 @@ function DashboardView({ scenarios, setActiveView }: { scenarios: Scenario[]; se
 
 function SimulationsView({ scenarios, filter, setFilter }: { scenarios: Scenario[], filter: string, setFilter: (f: DifficultyLevel | 'all') => void }) {
   return (
-    <div className="p-6 lg:p-10 space-y-10 animate-fade-in">
+    <div className="p-4 lg:p-10 space-y-6 lg:space-y-10 animate-fade-in">
       <header className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
-            <h1 className="text-5xl font-black tracking-tighter text-on-surface leading-none">
+            <h1 className="text-3xl lg:text-5xl font-black tracking-tighter text-on-surface leading-none">
               Simulation <span className="text-primary">Library</span>
             </h1>
-            <p className="text-lg text-on-surface-variant font-medium">Select a scenario to begin your clinical training session.</p>
+            <p className="text-sm lg:text-lg text-on-surface-variant font-medium">Select a scenario to begin your clinical training session.</p>
           </div>
           <div className="flex flex-wrap gap-2 p-1.5 bg-surface-container rounded-[1.5rem] border border-outline-variant/5">
             {FILTERS.map((f) => (
@@ -466,7 +466,7 @@ function SimulationsView({ scenarios, filter, setFilter }: { scenarios: Scenario
                 key={f.value}
                 onClick={() => setFilter(f.value)}
                 className={cn(
-                  'px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all duration-300',
+                  'px-4 py-2 lg:px-6 lg:py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all duration-300',
                   filter === f.value
                     ? 'bg-primary text-on-primary shadow-lg shadow-primary/20 scale-105'
                     : 'text-on-surface-variant hover:text-primary hover:bg-surface-container-highest active:scale-95'
@@ -479,7 +479,7 @@ function SimulationsView({ scenarios, filter, setFilter }: { scenarios: Scenario
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8">
         {scenarios.map((scenario) => (
           <div key={scenario.id} className="animate-fade-in">
             <ScenarioCard scenario={scenario} />
@@ -552,12 +552,12 @@ function LibraryView() {
   const [openCategory, setOpenCategory] = useState<string | null>('OLDCARTS Framework')
 
   return (
-    <div className="p-6 lg:p-10 space-y-10 animate-fade-in">
+    <div className="p-4 lg:p-10 space-y-6 lg:space-y-10 animate-fade-in">
       <header className="space-y-2">
-        <h1 className="text-5xl font-black tracking-tighter text-on-surface leading-none">
+        <h1 className="text-3xl lg:text-5xl font-black tracking-tighter text-on-surface leading-none">
           Clinical <span className="text-tertiary">Library</span>
         </h1>
-        <p className="text-lg text-on-surface-variant font-medium">Quick reference for history-taking frameworks and clinical pearls.</p>
+        <p className="text-sm lg:text-lg text-on-surface-variant font-medium">Quick reference for history-taking frameworks and clinical pearls.</p>
       </header>
 
       <div className="space-y-4">
@@ -565,13 +565,13 @@ function LibraryView() {
           <div key={cat.category} className="bg-surface-container-lowest rounded-[2.5rem] border border-outline-variant/5 premium-shadow overflow-hidden">
             <button
               onClick={() => setOpenCategory(openCategory === cat.category ? null : cat.category)}
-              className="w-full flex items-center gap-5 p-6 lg:p-8 hover:bg-surface-container/30 transition-all"
+              className="w-full flex items-center gap-5 p-4 lg:p-8 hover:bg-surface-container/30 transition-all"
             >
               <div className={cn('w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0', cat.bg)}>
                 <span className={cn('material-symbols-outlined !text-2xl', cat.color)} style={{ fontVariationSettings: "'FILL' 1" }}>{cat.icon}</span>
               </div>
               <div className="flex-1 text-left">
-                <p className="font-black text-on-surface text-lg tracking-tight">{cat.category}</p>
+                <p className="font-black text-on-surface text-base lg:text-lg tracking-tight">{cat.category}</p>
                 <p className="text-xs text-on-surface-variant/50 font-bold">{cat.items.length} topics</p>
               </div>
               <span className={cn('material-symbols-outlined text-on-surface-variant/40 transition-transform duration-300', openCategory === cat.category && 'rotate-180')}>expand_more</span>
@@ -670,19 +670,19 @@ function PerformanceView() {
   }
 
   return (
-    <div className="p-6 lg:p-10 space-y-10 animate-fade-in">
+    <div className="p-4 lg:p-10 space-y-6 lg:space-y-10 animate-fade-in">
       <header className="space-y-2">
-        <h1 className="text-5xl font-black tracking-tighter text-on-surface leading-none">
+        <h1 className="text-3xl lg:text-5xl font-black tracking-tighter text-on-surface leading-none">
           Performance <span className="text-primary">Analytics</span>
         </h1>
-        <p className="text-lg text-on-surface-variant font-medium">{withFeedback.length} sessions analyzed</p>
+        <p className="text-sm lg:text-lg text-on-surface-variant font-medium">{withFeedback.length} sessions analyzed</p>
       </header>
 
-      <div className="grid grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-8">
         {/* OLDCARTS Breakdown */}
-        <div className="col-span-12 lg:col-span-7 bg-surface-container-lowest rounded-[3rem] p-8 lg:p-10 premium-shadow border border-outline-variant/5 space-y-8">
+        <div className="col-span-12 lg:col-span-7 bg-surface-container-lowest rounded-[3rem] p-5 lg:p-10 premium-shadow border border-outline-variant/5 space-y-8">
           <div className="flex justify-between items-center">
-            <h3 className="text-2xl font-black text-on-surface tracking-tight">OLDCARTS Breakdown</h3>
+            <h3 className="text-xl lg:text-2xl font-black text-on-surface tracking-tight">OLDCARTS Breakdown</h3>
             <div className="px-4 py-2 bg-primary/10 rounded-2xl">
               <span className="text-primary font-black text-sm">Avg {overallAvg}%</span>
             </div>
@@ -730,7 +730,7 @@ function PerformanceView() {
                 color: 'text-primary'
               },
             ].map(({ icon, label, value, color }) => (
-              <div key={label} className="bg-surface-container-lowest rounded-[2rem] p-6 premium-shadow-md border border-outline-variant/5 space-y-3">
+              <div key={label} className="bg-surface-container-lowest rounded-2xl lg:rounded-[2rem] p-4 lg:p-6 premium-shadow-md border border-outline-variant/5 space-y-3">
                 <span className={cn('material-symbols-outlined !text-3xl', color)} style={{ fontVariationSettings: "'FILL' 1" }}>{icon}</span>
                 <div>
                   <p className="text-[10px] font-black text-on-surface-variant/40 uppercase tracking-widest mb-1">{label}</p>
@@ -742,8 +742,8 @@ function PerformanceView() {
         </div>
 
         {/* Session History */}
-        <div className="col-span-12 space-y-6">
-          <h3 className="text-2xl font-black text-on-surface tracking-tight px-2">Recent Sessions</h3>
+        <div className="col-span-12 space-y-4">
+          <h3 className="text-xl lg:text-2xl font-black text-on-surface tracking-tight px-2">Recent Sessions</h3>
           <div className="space-y-4">
             {history.slice(0, 10).map((s) => {
               const mins = Math.floor(s.durationSeconds / 60)
@@ -751,9 +751,9 @@ function PerformanceView() {
               const date = new Date(s.startedAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' })
               const overall = s.scores?.overall ?? 0
               return (
-                <div key={s.id} className="flex items-center gap-6 p-6 bg-surface-container-lowest rounded-[2.5rem] border border-outline-variant/5 premium-shadow-md">
+                <div key={s.id} className="flex items-center gap-4 p-4 lg:p-6 bg-surface-container-lowest rounded-2xl lg:rounded-[2.5rem] border border-outline-variant/5 premium-shadow-md">
                   <div className={cn(
-                    'w-14 h-14 rounded-2xl flex items-center justify-center font-black text-lg shrink-0',
+                    'w-10 h-10 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl flex items-center justify-center font-black text-sm lg:text-lg shrink-0',
                     overall >= 70 ? 'bg-primary/10 text-primary' : overall >= 40 ? 'bg-tertiary/10 text-tertiary' : 'bg-error/10 text-error'
                   )}>
                     {overall}

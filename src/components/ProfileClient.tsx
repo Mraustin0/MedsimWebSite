@@ -154,16 +154,16 @@ export default function ProfileClient() {
       <div className="ml-0 lg:ml-[72px] min-h-screen flex flex-col relative transition-all duration-500">
         
         {/* Top App Bar */}
-        <header className="sticky top-0 z-40 w-full bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 flex justify-between items-center px-6 lg:px-10 py-4">
+        <header className="sticky top-0 z-40 w-full bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 flex justify-between items-center px-4 lg:px-10 py-3 lg:py-4">
           <div className="flex items-center gap-4">
             <h2 className="text-xl font-black text-on-surface tracking-tight">Student Profile</h2>
           </div>
 
           <div className="flex items-center gap-6 lg:gap-8">
-            <button className="relative p-2.5 text-on-surface-variant hover:bg-surface-container rounded-2xl transition-all active:scale-95 group">
+            <button className="hidden lg:flex relative p-2.5 text-on-surface-variant hover:bg-surface-container rounded-2xl transition-all active:scale-95 group">
               <span className="material-symbols-outlined !text-2xl">notifications</span>
             </button>
-            
+
             <div className="flex items-center gap-4 pl-6 border-l border-outline-variant/10">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-black text-on-surface tracking-tight leading-none mb-1">{userName}</p>
@@ -183,10 +183,10 @@ export default function ProfileClient() {
           </div>
         </header>
 
-        <main className="flex-1 p-6 lg:p-10 max-w-6xl mx-auto w-full space-y-10 animate-fade-in pb-24 lg:pb-12">
+        <main className="flex-1 p-4 lg:p-10 max-w-6xl mx-auto w-full space-y-6 lg:space-y-10 animate-fade-in pb-24 lg:pb-12">
           {/* Header Section */}
           <div className="space-y-2">
-            <h2 className="text-4xl font-black text-on-surface tracking-tight">Student <span className="text-primary">Profile</span></h2>
+            <h2 className="text-2xl lg:text-4xl font-black text-on-surface tracking-tight">Student <span className="text-primary">Profile</span></h2>
             <p className="text-on-surface-variant font-medium">Manage your clinical identity and platform preferences.</p>
           </div>
 
@@ -194,17 +194,17 @@ export default function ProfileClient() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             
             {/* Profile Header Card */}
-            <section className="lg:col-span-12 bg-surface-container-lowest rounded-[3rem] p-8 lg:p-10 premium-shadow border border-outline-variant/5 relative overflow-hidden group">
+            <section className="lg:col-span-12 bg-surface-container-lowest rounded-2xl lg:rounded-[3rem] p-5 lg:p-10 premium-shadow border border-outline-variant/5 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
               
               <div className="relative flex flex-col md:flex-row items-center md:items-start gap-10">
                 <div className="relative group/avatar">
-                  <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-[3rem] overflow-hidden border-4 border-primary-container shadow-2xl transition-transform duration-500 group-hover/avatar:scale-105">
+                  <div className="w-24 h-24 lg:w-40 lg:h-40 rounded-2xl lg:rounded-[3rem] overflow-hidden border-4 border-primary-container shadow-2xl transition-transform duration-500 group-hover/avatar:scale-105">
                     <img alt="Profile" className="w-full h-full object-cover" src={userAvatar} />
                   </div>
                   <button
                     onClick={() => toast.info('Coming Soon', 'อัพโหลดรูปโปรไฟล์จะเปิดให้ใช้งานเร็วๆ นี้')}
-                    className="absolute bottom-0 right-0 bg-primary text-on-primary w-12 h-12 rounded-2xl flex items-center justify-center shadow-xl border-4 border-surface hover:scale-110 transition-transform active:scale-95"
+                    className="absolute bottom-0 right-0 bg-primary text-on-primary w-9 h-9 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl flex items-center justify-center shadow-xl border-4 border-surface hover:scale-110 transition-transform active:scale-95"
                   >
                     <span className="material-symbols-outlined !text-xl">edit</span>
                   </button>
@@ -215,7 +215,7 @@ export default function ProfileClient() {
                     <div className="flex flex-col md:flex-row md:items-center gap-4">
                       <input 
                         type="text"
-                        className="text-4xl lg:text-5xl font-black text-on-surface tracking-tighter bg-transparent border-b border-transparent focus:border-primary outline-none transition-all w-full md:w-auto"
+                        className="text-2xl lg:text-5xl font-black text-on-surface tracking-tighter bg-transparent border-b border-transparent focus:border-primary outline-none transition-all w-full md:w-auto"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       />
@@ -223,7 +223,7 @@ export default function ProfileClient() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12 pt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 lg:gap-y-6 gap-x-8 lg:gap-x-12 pt-3 lg:pt-4">
                     {[
                       { icon: 'mail', label: 'Institutional Email', value: session?.user?.email || '', readonly: true },
                       { icon: 'school', label: 'Year of Study', value: formData.yearOfStudy, key: 'yearOfStudy' },
@@ -231,7 +231,7 @@ export default function ProfileClient() {
                       { icon: 'domain', label: 'University', value: formData.university, key: 'university' },
                     ].map((info) => (
                       <div key={info.label} className="flex items-center gap-4 group/info">
-                        <div className="w-12 h-12 rounded-2xl bg-surface-container flex items-center justify-center text-on-surface-variant/40 group-hover/info:bg-primary/10 group-hover/info:text-primary transition-colors">
+                        <div className="w-9 h-9 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl bg-surface-container flex items-center justify-center text-on-surface-variant/40 group-hover/info:bg-primary/10 group-hover/info:text-primary transition-colors">
                           <span className="material-symbols-outlined !text-2xl">{info.icon}</span>
                         </div>
                         <div className="flex-1">
@@ -256,7 +256,7 @@ export default function ProfileClient() {
 
             {/* Academic Sidebar */}
             <aside className="lg:col-span-4 flex flex-col gap-8">
-              <div className="bg-surface-container-low rounded-[2.5rem] p-8 space-y-8 border border-outline-variant/5">
+              <div className="bg-surface-container-low rounded-2xl lg:rounded-[2.5rem] p-5 lg:p-8 space-y-5 lg:space-y-8 border border-outline-variant/5">
                 <h4 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-2 flex items-center gap-2">
                   <span className="material-symbols-outlined !text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span> Academic Record
                 </h4>
@@ -267,9 +267,9 @@ export default function ProfileClient() {
                     { label: 'Current Rotation', value: 'Cardiology', progress: 75, footer: 'Week 9 of 12' },
                     { label: 'Simulation Hours', value: '142.5 hrs' },
                   ].map((item) => (
-                    <div key={item.label} className="p-5 bg-surface-container-lowest rounded-3xl border border-outline-variant/5 shadow-sm space-y-3">
+                    <div key={item.label} className="p-4 lg:p-5 bg-surface-container-lowest rounded-2xl lg:rounded-3xl border border-outline-variant/5 shadow-sm space-y-3">
                       <p className="text-[10px] font-black text-on-surface-variant/40 uppercase tracking-widest">{item.label}</p>
-                      <p className="text-xl font-black text-on-surface tracking-tight">{item.value}</p>
+                      <p className="text-lg lg:text-xl font-black text-on-surface tracking-tight">{item.value}</p>
                       {item.progress !== undefined && (
                         <div className="space-y-2 pt-1">
                           <div className="w-full bg-surface-container h-1.5 rounded-full overflow-hidden">
