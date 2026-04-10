@@ -77,10 +77,18 @@ export async function chatWithPatient(
     })
 
     // history includes the new user message at the end — pass everything before it as chat history
-    const chatHistory = history.slice(0, -1).map((msg) => ({
+    const rawHistory = history.slice(0, -1).map((msg) => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: [{ text: msg.content }],
     }))
+
+    // Gemini requires chat history to start with a 'user' turn.
+    // If history starts with 'model' (e.g. AI greeting from init), prepend a synthetic user turn.
+    const chatHistory =
+      rawHistory.length > 0 && rawHistory[0].role === 'model'
+        ? [{ role: 'user' as const, parts: [{ text: 'เริ่มต้น' }] }, ...rawHistory]
+        : rawHistory
+
     const lastMessage = history[history.length - 1]
 
     const chat = model.startChat({ history: chatHistory })
