@@ -24,7 +24,7 @@ export default function MessageList({ messages, isLoading, scenario }: MessageLi
   return (
     <div
       ref={scrollRef}
-      className="flex-1 overflow-y-auto chat-scroll p-4 lg:p-6 xl:p-8 flex flex-col gap-4"
+      className="flex-1 overflow-y-auto overflow-x-hidden chat-scroll p-4 lg:p-6 xl:p-8 flex flex-col gap-4"
     >
       {/* Simulation Started Badge */}
       {messages.length > 0 && (

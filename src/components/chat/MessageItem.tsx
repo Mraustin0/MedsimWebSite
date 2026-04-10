@@ -13,7 +13,7 @@ export default function MessageItem({ message, scenario }: MessageItemProps) {
   return (
     <div
       className={cn(
-        'flex gap-3 max-w-[90%] lg:max-w-[80%] animate-fade-in',
+        'flex gap-3 max-w-[88%] lg:max-w-[78%] animate-fade-in min-w-0',
         isAssistant ? 'justify-start self-start' : 'justify-end self-end flex-row-reverse'
       )}
     >
@@ -23,14 +23,14 @@ export default function MessageItem({ message, scenario }: MessageItemProps) {
         </div>
       )}
 
-      <div className={cn('flex flex-col gap-1', isAssistant ? 'items-start' : 'items-end')}>
+      <div className={cn('flex flex-col gap-1 min-w-0', isAssistant ? 'items-start' : 'items-end')}>
         <p className="label-sm text-on-surface-variant/70 px-1 font-bold">
           {isAssistant ? scenario.name : 'Medical Student'}
         </p>
-        
+
         <div
           className={cn(
-            'px-5 py-3 rounded-2xl text-[15px] leading-relaxed premium-shadow-md border',
+            'px-5 py-3 rounded-2xl text-[15px] leading-relaxed premium-shadow-md border break-words overflow-hidden',
             isAssistant
               ? 'bg-surface-container-lowest text-on-surface rounded-tl-sm border-outline-variant/10'
               : 'cta-gradient text-on-primary rounded-tr-sm border-transparent'

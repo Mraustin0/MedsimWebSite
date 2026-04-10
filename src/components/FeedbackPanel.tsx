@@ -21,7 +21,7 @@ export default function FeedbackPanel({ feedback, scenario, durationSeconds, tot
   return (
     <div className="min-h-screen bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
       {/* TopNavBar (Mobile-optimized) */}
-      <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-outline-variant/10 flex justify-between items-center px-6 py-3">
+      <nav className="fixed top-0 w-full z-50 bg-surface/90 backdrop-blur-md border-b border-outline-variant/10 flex justify-between items-center px-6 py-3">
         <div className="flex items-center gap-2">
           <span className="text-xl font-black tracking-tight text-primary">MedSim</span>
         </div>
@@ -38,7 +38,7 @@ export default function FeedbackPanel({ feedback, scenario, durationSeconds, tot
         </div>
       </nav>
 
-      <main className="pt-20 pb-24 px-5 max-w-[390px] mx-auto space-y-8 animate-fade-in">
+      <main className="pt-20 pb-24 px-5 w-full max-w-xl lg:max-w-2xl mx-auto space-y-8 animate-fade-in">
         {/* Hero Header */}
         <header className="space-y-3 pt-4">
           <div className="flex items-center gap-2">
@@ -46,7 +46,7 @@ export default function FeedbackPanel({ feedback, scenario, durationSeconds, tot
               SIMULATION COMPLETE
             </span>
           </div>
-          <h1 className="text-3xl font-black tracking-tighter text-on-surface leading-tight">
+          <h1 className="text-3xl lg:text-4xl font-black tracking-tighter text-on-surface leading-tight">
             Excellent Work, Student.
           </h1>
           <p className="body-md text-on-surface-variant leading-relaxed font-medium">
