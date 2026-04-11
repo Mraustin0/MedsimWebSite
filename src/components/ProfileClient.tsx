@@ -9,11 +9,18 @@ import { useConfirm } from '@/components/ui/ConfirmDialog'
 
 type ViewType = 'Dashboard' | 'Simulations' | 'Library' | 'Performance' | 'Settings'
 
-const NAV_ITEMS = [
+const STUDENT_NAV_ITEMS = [
   { icon: 'dashboard', label: 'Dashboard' as ViewType, href: '/dashboard' },
   { icon: 'medical_services', label: 'Simulations' as ViewType, href: '/dashboard' },
   { icon: 'import_contacts', label: 'Library' as ViewType, href: '/dashboard' },
   { icon: 'leaderboard', label: 'Performance' as ViewType, href: '/dashboard' },
+]
+
+const INSTRUCTOR_NAV_ITEMS = [
+  { icon: 'dashboard', label: 'Dashboard' as ViewType, href: '/instructor' },
+  { icon: 'medical_services', label: 'Simulations' as ViewType, href: '/instructor' },
+  { icon: 'import_contacts', label: 'Library' as ViewType, href: '/instructor' },
+  { icon: 'leaderboard', label: 'Performance' as ViewType, href: '/instructor' },
 ]
 
 export default function ProfileClient() {
@@ -25,7 +32,9 @@ export default function ProfileClient() {
   const confirm = useConfirm()
 
   const userName = session?.user?.name || 'Medical Student'
-  const userRole = (session?.user as any)?.role === 'INSTRUCTOR' ? 'Clinical Instructor' : 'Medical Student'
+  const isInstructor = (session?.user as any)?.role === 'INSTRUCTOR'
+  const userRole = isInstructor ? 'Clinical Instructor' : 'Medical Student'
+  const homeRoute = isInstructor ? '/instructor' : '/dashboard'
   const userAvatar = (session?.user as any)?.avatarUrl || session?.user?.image || "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=2070&auto=format&fit=crop"
 
   const handleLogout = async () => {
@@ -92,7 +101,7 @@ export default function ProfileClient() {
     <div className="min-h-screen bg-surface selection:bg-primary-container selection:text-on-primary-container">
       {/* ===== SIDEBAR: Hidden on mobile, flex on desktop ===== */}
       <aside className="fixed left-0 top-0 h-screen w-[72px] hover:w-64 bg-surface-container-lowest hidden lg:flex flex-col py-6 gap-y-8 z-50 border-r border-outline-variant/10 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] group/sidebar overflow-hidden premium-shadow">
-        <div className="flex items-center gap-4 px-3 flex-shrink-0" onClick={() => router.push('/dashboard')} style={{ cursor: 'pointer' }}>
+        <div className="flex items-center gap-4 px-3 flex-shrink-0" onClick={() => router.push(homeRoute)} style={{ cursor: 'pointer' }}>
           <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center text-on-primary shadow-lg shadow-primary/20 flex-shrink-0 transition-transform duration-500 group-hover/sidebar:rotate-[360deg]">
             <span className="material-symbols-outlined !text-2xl" style={{ fontVariationSettings: "'FILL' 1" }}>medical_services</span>
           </div>
@@ -103,7 +112,7 @@ export default function ProfileClient() {
         </div>
 
         <nav className="flex flex-col gap-2 px-3">
-          {NAV_ITEMS.map((item) => (
+          {(isInstructor ? INSTRUCTOR_NAV_ITEMS : STUDENT_NAV_ITEMS).map((item) => (
             <button
               key={item.label}
               onClick={() => router.push(item.href)}
@@ -156,7 +165,7 @@ export default function ProfileClient() {
         {/* Top App Bar */}
         <header className="sticky top-0 z-40 w-full bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 flex justify-between items-center px-4 lg:px-10 py-3 lg:py-4">
           <div className="flex items-center gap-4">
-            <h2 className="text-xl font-black text-on-surface tracking-tight">Student Profile</h2>
+            <h2 className="text-xl font-black text-on-surface tracking-tight">{isInstructor ? 'Instructor' : 'Student'} Profile</h2>
           </div>
 
           <div className="flex items-center gap-6 lg:gap-8">
@@ -186,7 +195,7 @@ export default function ProfileClient() {
         <main className="flex-1 p-4 lg:p-10 max-w-6xl mx-auto w-full space-y-6 lg:space-y-10 animate-fade-in pb-24 lg:pb-12">
           {/* Header Section */}
           <div className="space-y-2">
-            <h2 className="text-2xl lg:text-4xl font-black text-on-surface tracking-tight">Student <span className="text-primary">Profile</span></h2>
+            <h2 className="text-2xl lg:text-4xl font-black text-on-surface tracking-tight">{isInstructor ? 'Instructor' : 'Student'} <span className="text-primary">Profile</span></h2>
             <p className="text-on-surface-variant font-medium">Manage your clinical identity and platform preferences.</p>
           </div>
 
@@ -219,7 +228,7 @@ export default function ProfileClient() {
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       />
-                      <span className="px-4 py-1.5 bg-primary-container/40 text-on-primary-container rounded-full text-[10px] font-black uppercase tracking-[0.2em] self-center md:self-auto border border-primary/10">Active Student</span>
+                      <span className="px-4 py-1.5 bg-primary-container/40 text-on-primary-container rounded-full text-[10px] font-black uppercase tracking-[0.2em] self-center md:self-auto border border-primary/10">{isInstructor ? 'Clinical Instructor' : 'Active Student'}</span>
                     </div>
                   </div>
 
@@ -404,7 +413,7 @@ export default function ProfileClient() {
         {/* Mobile Bottom Nav */}
         <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden glass-nav border-t border-outline-variant/15 pb-safe">
           <div className="flex items-center justify-around py-3 px-4">
-            {NAV_ITEMS.map((item) => (
+            {(isInstructor ? INSTRUCTOR_NAV_ITEMS : STUDENT_NAV_ITEMS).map((item) => (
               <button
                 key={item.label}
                 onClick={() => router.push(item.href)}
