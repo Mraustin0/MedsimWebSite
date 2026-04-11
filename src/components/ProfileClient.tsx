@@ -31,11 +31,35 @@ export default function ProfileClient() {
   const toast = useToast()
   const confirm = useConfirm()
 
+  const [formData, setFormData] = useState({
+    name: '',
+    yearOfStudy: '',
+    specialty: '',
+    university: '',
+  })
+
+  const [notifications, setNotifications] = useState({
+    newSimulation: true,
+    feedback: true,
+    systemUpdates: false
+  })
+
   const isInstructor = (session?.user as any)?.role === 'INSTRUCTOR'
   const userName = session?.user?.name || (isInstructor ? 'Clinical Instructor' : 'Medical Student')
   const userRole = isInstructor ? 'Clinical Instructor' : 'Medical Student'
   const homeRoute = isInstructor ? '/instructor' : '/dashboard'
   const userAvatar = (session?.user as any)?.avatarUrl || session?.user?.image || "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=2070&auto=format&fit=crop"
+
+  useEffect(() => {
+    if (session?.user) {
+      setFormData({
+        name: session.user.name || '',
+        yearOfStudy: (session.user as any).yearOfStudy || '',
+        specialty: (session.user as any).specialty || '',
+        university: (session.user as any).university || 'Khon Kaen University',
+      })
+    }
+  }, [session])
 
   if (status === 'loading') {
     return (
@@ -54,30 +78,6 @@ export default function ProfileClient() {
     })
     if (ok) signOut({ callbackUrl: '/login' })
   }
-
-  const [formData, setFormData] = useState({
-    name: '',
-    yearOfStudy: '',
-    specialty: '',
-    university: '',
-  })
-
-  const [notifications, setNotifications] = useState({
-    newSimulation: true,
-    feedback: true,
-    systemUpdates: false
-  })
-
-  useEffect(() => {
-    if (session?.user) {
-      setFormData({
-        name: session.user.name || '',
-        yearOfStudy: (session.user as any).yearOfStudy || '',
-        specialty: (session.user as any).specialty || '',
-        university: (session.user as any).university || 'Khon Kaen University',
-      })
-    }
-  }, [session])
 
   const handleSave = async () => {
     setIsSaving(true)
