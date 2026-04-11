@@ -118,7 +118,7 @@ export default function InstructorPage() {
 
         <div className="mt-auto flex flex-col gap-2 px-3">
           <button
-            onClick={(e) => { e.stopPropagation(); router.push('/profile') }}
+            onClick={(e) => { e.stopPropagation(); router.push('/instructor/profile') }}
             className="flex items-center gap-4 w-full py-3.5 rounded-2xl transition-all group/footer text-on-surface-variant hover:text-secondary hover:bg-surface-container"
           >
             <span className="material-symbols-outlined !text-2xl flex-shrink-0 w-12 text-center group-hover/footer:rotate-45 transition-transform duration-500">settings</span>
@@ -141,7 +141,7 @@ export default function InstructorPage() {
           <span className="px-3 py-1 bg-secondary-container/20 text-secondary text-[10px] font-black uppercase tracking-widest rounded-full border border-secondary/10 shrink-0">Faculty</span>
           <div
             className="flex items-center gap-3 cursor-pointer group"
-            onClick={() => router.push('/profile')}
+            onClick={() => router.push('/instructor/profile')}
           >
             <div className="text-right hidden sm:block">
               <p className="text-sm font-black text-on-surface tracking-tight leading-none">{userName}</p>
@@ -178,7 +178,7 @@ export default function InstructorPage() {
               </button>
             ))}
             <button
-              onClick={() => router.push('/profile')}
+              onClick={() => router.push('/instructor/profile')}
               className="flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all active:scale-90 text-on-surface-variant/60"
             >
               <span className="material-symbols-outlined !text-2xl">person</span>

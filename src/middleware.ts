@@ -55,6 +55,7 @@ export const config = {
     "/dashboard",
     "/profile/:path*",
     "/profile",
+    "/instructor/profile",
     "/instructor/:path*",
     "/instructor",
     "/session/:path*",
