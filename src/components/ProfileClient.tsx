@@ -25,17 +25,25 @@ const INSTRUCTOR_NAV_ITEMS = [
 
 export default function ProfileClient() {
   const router = useRouter()
-  const { data: session, update } = useSession()
+  const { data: session, update, status } = useSession()
   const [activeView, setActiveView] = useState<ViewType>('Settings')
   const [isSaving, setIsSaving] = useState(false)
   const toast = useToast()
   const confirm = useConfirm()
 
-  const userName = session?.user?.name || 'Medical Student'
   const isInstructor = (session?.user as any)?.role === 'INSTRUCTOR'
+  const userName = session?.user?.name || (isInstructor ? 'Clinical Instructor' : 'Medical Student')
   const userRole = isInstructor ? 'Clinical Instructor' : 'Medical Student'
   const homeRoute = isInstructor ? '/instructor' : '/dashboard'
   const userAvatar = (session?.user as any)?.avatarUrl || session?.user?.image || "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=2070&auto=format&fit=crop"
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+      </div>
+    )
+  }
 
   const handleLogout = async () => {
     const ok = await confirm({
