@@ -233,12 +233,17 @@ export default function ProfileClient() {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 lg:gap-y-6 gap-x-8 lg:gap-x-12 pt-3 lg:pt-4">
-                    {[
+                    {(isInstructor ? [
+                      { icon: 'mail', label: 'Institutional Email', value: session?.user?.email || '', readonly: true },
+                      { icon: 'business_center', label: 'Department', value: formData.yearOfStudy, key: 'yearOfStudy' },
+                      { icon: 'stethoscope', label: 'Specialty / Field', value: formData.specialty, key: 'specialty' },
+                      { icon: 'domain', label: 'University', value: formData.university, key: 'university' },
+                    ] : [
                       { icon: 'mail', label: 'Institutional Email', value: session?.user?.email || '', readonly: true },
                       { icon: 'school', label: 'Year of Study', value: formData.yearOfStudy, key: 'yearOfStudy' },
                       { icon: 'stethoscope', label: 'Specialty Interest', value: formData.specialty, key: 'specialty' },
                       { icon: 'domain', label: 'University', value: formData.university, key: 'university' },
-                    ].map((info) => (
+                    ]).map((info) => (
                       <div key={info.label} className="flex items-center gap-4 group/info">
                         <div className="w-9 h-9 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl bg-surface-container flex items-center justify-center text-on-surface-variant/40 group-hover/info:bg-primary/10 group-hover/info:text-primary transition-colors">
                           <span className="material-symbols-outlined !text-2xl">{info.icon}</span>
@@ -263,19 +268,24 @@ export default function ProfileClient() {
               </div>
             </section>
 
-            {/* Academic Sidebar */}
+            {/* Sidebar */}
             <aside className="lg:col-span-4 flex flex-col gap-8">
               <div className="bg-surface-container-low rounded-2xl lg:rounded-[2.5rem] p-5 lg:p-8 space-y-5 lg:space-y-8 border border-outline-variant/5">
                 <h4 className="text-xs font-black uppercase tracking-[0.2em] text-primary mb-2 flex items-center gap-2">
-                  <span className="material-symbols-outlined !text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span> Academic Record
+                  <span className="material-symbols-outlined !text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
+                  {isInstructor ? 'Instructor Record' : 'Academic Record'}
                 </h4>
-                
+
                 <div className="space-y-4">
-                  {[
+                  {(isInstructor ? [
+                    { label: 'Role', value: 'Clinical Instructor' },
+                    { label: 'Platform Access', value: 'Full Instructor Access' },
+                    { label: 'Account Status', value: 'Active' },
+                  ] : [
                     { label: 'Student ID', value: 'MED-2024-8842' },
                     { label: 'Current Rotation', value: 'Cardiology', progress: 75, footer: 'Week 9 of 12' },
                     { label: 'Simulation Hours', value: '142.5 hrs' },
-                  ].map((item) => (
+                  ]).map((item: any) => (
                     <div key={item.label} className="p-4 lg:p-5 bg-surface-container-lowest rounded-2xl lg:rounded-3xl border border-outline-variant/5 shadow-sm space-y-3">
                       <p className="text-[10px] font-black text-on-surface-variant/40 uppercase tracking-widest">{item.label}</p>
                       <p className="text-lg lg:text-xl font-black text-on-surface tracking-tight">{item.value}</p>
@@ -294,11 +304,23 @@ export default function ProfileClient() {
 
               <div className="cta-gradient text-on-primary p-10 rounded-[2.5rem] shadow-2xl shadow-primary/30 relative overflow-hidden group">
                 <span className="material-symbols-outlined absolute -right-4 -bottom-4 text-9xl opacity-10 group-hover:scale-110 transition-transform duration-700" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-                <h4 className="text-sm font-black uppercase tracking-widest mb-4 opacity-60">Mentor Advice</h4>
-                <p className="text-lg font-bold leading-relaxed mb-8 italic">
-                  &ldquo;Alex, you&apos;ve shown great progress in your rhythm analysis. Focus on the next 3 advanced simulations to unlock your Senior Resident certification.&rdquo;
-                </p>
-                <button className="text-[10px] font-black uppercase tracking-[0.2em] border-b-2 border-on-primary/20 pb-1 hover:border-on-primary transition-all">View Career Path</button>
+                {isInstructor ? (
+                  <>
+                    <h4 className="text-sm font-black uppercase tracking-widest mb-4 opacity-60">Instructor Hub</h4>
+                    <p className="text-lg font-bold leading-relaxed mb-8 italic">
+                      &ldquo;Manage your scenarios, track student progress, and shape the next generation of clinicians.&rdquo;
+                    </p>
+                    <button onClick={() => router.push('/instructor')} className="text-[10px] font-black uppercase tracking-[0.2em] border-b-2 border-on-primary/20 pb-1 hover:border-on-primary transition-all">Go to Dashboard</button>
+                  </>
+                ) : (
+                  <>
+                    <h4 className="text-sm font-black uppercase tracking-widest mb-4 opacity-60">Mentor Advice</h4>
+                    <p className="text-lg font-bold leading-relaxed mb-8 italic">
+                      &ldquo;Alex, you&apos;ve shown great progress in your rhythm analysis. Focus on the next 3 advanced simulations to unlock your Senior Resident certification.&rdquo;
+                    </p>
+                    <button className="text-[10px] font-black uppercase tracking-[0.2em] border-b-2 border-on-primary/20 pb-1 hover:border-on-primary transition-all">View Career Path</button>
+                  </>
+                )}
               </div>
             </aside>
 
