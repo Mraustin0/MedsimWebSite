@@ -633,7 +633,7 @@ function CreateScenario({
         </div>
       )}
 
-      <form id="scenario-form" onSubmit={handleSubmit} className="max-w-4xl space-y-4 lg:space-y-6">
+      <form id="scenario-form" onSubmit={handleSubmit} className="space-y-4 lg:space-y-6">
 
         {/* Section 1: Patient Info */}
         <div className="bg-surface-container-lowest/80 backdrop-blur-xl border border-outline-variant/10 rounded-2xl lg:rounded-[2.5rem] p-4 lg:p-10 premium-shadow-md space-y-4 lg:space-y-6">
