@@ -213,7 +213,7 @@ function InstructorDashboard({ setActiveView }: { setActiveView: (v: InstructorV
   }, [])
 
   return (
-    <div className="px-5 py-4 lg:px-10 lg:py-10 space-y-5 lg:space-y-8 animate-fade-in max-w-[900px]">
+    <div className="px-5 py-4 lg:px-10 lg:py-10 space-y-5 lg:space-y-8 animate-fade-in">
       {/* Welcome */}
       <section className="space-y-1 pt-0.5 lg:pt-1">
         <p className="text-[11px] font-black uppercase tracking-[0.2em] text-secondary/70">Instructor Portal</p>
@@ -352,7 +352,7 @@ function ScenarioList({ onEdit }: { onEdit: (s: ScenarioRecord) => void }) {
   }
 
   return (
-    <div className="px-5 py-6 lg:px-10 lg:py-10 space-y-6 lg:space-y-10 animate-fade-in max-w-[900px]">
+    <div className="px-5 py-6 lg:px-10 lg:py-10 space-y-6 lg:space-y-10 animate-fade-in">
       <header className="space-y-1 pt-1">
         <h1 className="text-3xl lg:text-5xl font-black tracking-tighter text-on-surface leading-none">
           All <span className="text-secondary">Scenarios</span>
@@ -600,7 +600,7 @@ function CreateScenario({
   const inputCls = 'w-full px-4 lg:px-5 py-3 lg:py-3.5 bg-surface-container/50 border border-outline-variant/15 rounded-2xl text-sm focus:ring-2 focus:ring-secondary/20 focus:border-secondary/30 transition-all placeholder:text-on-surface-variant/30 outline-none'
 
   return (
-    <div className="px-5 py-6 lg:px-10 lg:py-10 animate-fade-in max-w-[900px]">
+    <div className="px-5 py-6 lg:px-10 lg:py-10 animate-fade-in">
       <header className="mb-6 lg:mb-10 flex items-start justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-3xl lg:text-5xl font-black tracking-tighter text-on-surface leading-tight">

@@ -22,6 +22,7 @@ export function useSession({ scenario, onMessageSent }: UseSessionOptions) {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [sessionEnded, setSessionEnded] = useState(false)
+  const [isEndingSession, setIsEndingSession] = useState(false)
   const [feedback, setFeedback] = useState<Feedback | null>(null)
   const [chatError, setChatError] = useState<string | null>(null)
   const startTimeRef = useRef<number>(Date.now())
@@ -126,11 +127,21 @@ export function useSession({ scenario, onMessageSent }: UseSessionOptions) {
   const endSession = useCallback(async () => {
     if (sessionEnded) return
     setSessionEnded(true)
+    setIsEndingSession(true)
 
     const transcript = messages
       .filter((m) => m.role === 'user')
       .map((m) => m.content)
       .join('\n')
+
+    const fallbackFeedback: Feedback = {
+      scores: { onset: 0, location: 0, duration: 0, character: 0, aggravating: 0, relieving: 0, timing: 0, severity: 0, overall: 0 },
+      good: [],
+      missed: [],
+      tips: ['ไม่สามารถวิเคราะห์ได้ในขณะนี้'],
+      totalQuestions: messages.filter(m => m.role === 'user').length,
+      oldcartsCompleted: 0,
+    }
 
     try {
       const res = await fetch('/api/feedback', {
@@ -147,12 +158,16 @@ export function useSession({ scenario, onMessageSent }: UseSessionOptions) {
       setFeedback(fb)
     } catch (e) {
       console.error(e)
+      setFeedback(fallbackFeedback)
+    } finally {
+      setIsEndingSession(false)
     }
   }, [sessionEnded, messages, scenario.chiefComplaint])
 
   const resetSession = useCallback(() => {
     setFeedback(null)
     setSessionEnded(false)
+    setIsEndingSession(false)
     setMessages([])
     setChatError(null)
     startTimeRef.current = Date.now()
@@ -166,6 +181,7 @@ export function useSession({ scenario, onMessageSent }: UseSessionOptions) {
     input,
     setInput,
     isLoading,
+    isEndingSession,
     sessionEnded,
     feedback,
     chatError,

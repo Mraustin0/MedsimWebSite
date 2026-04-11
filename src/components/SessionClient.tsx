@@ -28,7 +28,7 @@ export default function SessionClient({ scenario }: Props) {
   const { oldcarts, checkedCount, detectFromMessage, toggle, reset: resetOldcarts } = useOldcarts()
 
   const {
-    messages, input, setInput, isLoading, feedback, chatError,
+    messages, input, setInput, isLoading, isEndingSession, feedback, chatError,
     hints, userQuestionCount,
     initSession, sendMessage, endSession, resetSession,
   } = useSession({
@@ -47,6 +47,18 @@ export default function SessionClient({ scenario }: Props) {
 
   const handleEnd = () => { stopTimer(); endSession() }
   const handleRetry = () => { resetSession(); resetOldcarts(); resetTimer(); initSession() }
+
+  if (isEndingSession) {
+    return (
+      <div className="min-h-screen bg-surface flex flex-col items-center justify-center gap-6">
+        <div className="w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+        <div className="text-center space-y-2">
+          <p className="text-lg font-bold text-on-surface">กำลังวิเคราะห์ผล...</p>
+          <p className="text-sm text-on-surface-variant">AI กำลังประเมินการซักประวัติของคุณ</p>
+        </div>
+      </div>
+    )
+  }
 
   if (feedback) {
     return (
