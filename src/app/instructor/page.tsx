@@ -817,7 +817,7 @@ function InstructorProfile() {
   const inputCls = 'w-full bg-transparent border-b border-outline-variant/20 focus:border-secondary outline-none text-sm lg:text-base font-bold text-on-surface transition-colors pb-1'
 
   return (
-    <div className="px-5 py-6 lg:px-10 lg:py-10 animate-fade-in max-w-5xl">
+    <div className="px-5 py-6 lg:px-10 lg:py-10 animate-fade-in">
       <header className="mb-8 lg:mb-10">
         <h1 className="text-3xl lg:text-5xl font-black tracking-tighter text-on-surface leading-tight">
           Instructor <span className="text-secondary">Profile</span>
