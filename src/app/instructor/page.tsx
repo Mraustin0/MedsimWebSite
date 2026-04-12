@@ -293,8 +293,8 @@ function InstructorDashboard({ setActiveView }: { setActiveView: (v: InstructorV
             {stats?.recentScenarios && stats.recentScenarios.length > 0 ? (
               stats.recentScenarios.map((s) => (
                 <div key={s.id} className="flex items-center gap-3 lg:gap-4 p-3 lg:p-5 bg-surface-container-lowest rounded-xl lg:rounded-3xl hover:shadow-md transition-all border border-outline-variant/5">
-                  <div className="w-9 h-9 lg:w-11 lg:h-11 rounded-xl lg:rounded-2xl bg-surface-container flex items-center justify-center text-lg lg:text-xl shrink-0">
-                    {s.gender === 'male' ? '👨' : '👩'}
+                  <div className="w-9 h-9 lg:w-11 lg:h-11 rounded-xl lg:rounded-2xl bg-surface-container flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined !text-xl text-on-surface-variant" style={{ fontVariationSettings: "'FILL' 1" }}>{s.gender === 'male' ? 'man' : 'woman'}</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs lg:text-sm font-black text-on-surface tracking-tight truncate">{s.name}</p>
@@ -376,8 +376,8 @@ function ScenarioList({ onEdit }: { onEdit: (s: ScenarioRecord) => void }) {
           const date = new Date(s.createdAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' })
           return (
             <div key={s.id} className="flex items-center gap-4 p-4 lg:p-5 bg-surface-container-lowest rounded-2xl lg:rounded-3xl border border-outline-variant/5 shadow-sm hover:shadow-md transition-all group">
-              <div className="w-11 h-11 lg:w-13 lg:h-13 rounded-2xl bg-surface-container flex items-center justify-center text-xl shrink-0">
-                {s.gender === 'male' ? '👨' : '👩'}
+              <div className="w-11 h-11 lg:w-13 lg:h-13 rounded-2xl bg-surface-container flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined !text-2xl text-on-surface-variant" style={{ fontVariationSettings: "'FILL' 1" }}>{s.gender === 'male' ? 'man' : 'woman'}</span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">

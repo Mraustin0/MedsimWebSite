@@ -367,7 +367,7 @@ function DashboardView({ scenarios, setActiveView }: { scenarios: Scenario[]; se
               >
                 <div className="relative">
                   <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl lg:rounded-3xl bg-surface-container flex items-center justify-center text-3xl shadow-inner text-on-surface-variant overflow-hidden">
-                    <span className="text-2xl">{s.gender === 'male' ? '👨' : '👩'}</span>
+                    <span className="material-symbols-outlined !text-3xl text-on-surface-variant" style={{ fontVariationSettings: "'FILL' 1" }}>{s.gender === 'male' ? 'man' : 'woman'}</span>
                   </div>
                   <div className={cn("absolute -bottom-2 -right-2 w-8 h-8 rounded-2xl border-4 border-surface flex items-center justify-center shadow-md",
                     s.difficulty === 'hard' ? 'bg-error-container' : s.difficulty === 'medium' ? 'bg-tertiary-container' : 'bg-primary-container'

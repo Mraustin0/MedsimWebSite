@@ -26,10 +26,6 @@ const ccColors: Record<string, string> = {
   'ปวดท้อง': 'bg-orange-100 text-orange-800',
 }
 
-const avatarEmoji: Record<string, string> = {
-  male: '👨',
-  female: '👩',
-}
 
 interface Props {
   scenario: Scenario
