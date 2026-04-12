@@ -479,9 +479,9 @@ function SimulationsView({ scenarios, filter, setFilter }: { scenarios: Scenario
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8 items-stretch">
         {scenarios.map((scenario) => (
-          <div key={scenario.id} className="animate-fade-in">
+          <div key={scenario.id} className="animate-fade-in h-full">
             <ScenarioCard scenario={scenario} />
           </div>
         ))}

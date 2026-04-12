@@ -36,8 +36,8 @@ export default function ScenarioCard({ scenario }: Props) {
   const ccColor = ccColors[scenario.chiefComplaint] ?? 'bg-surface-container text-on-surface-variant'
 
   return (
-    <div className="group bg-surface-container-lowest rounded-2xl premium-shadow overflow-hidden flex flex-col border border-transparent hover:border-primary/10 transition-all duration-300">
-      <div className="p-8 flex-1">
+    <div className="group bg-surface-container-lowest rounded-2xl premium-shadow overflow-hidden flex flex-col border border-transparent hover:border-primary/10 transition-all duration-300 h-full">
+      <div className="p-8 flex-1 flex flex-col">
         {/* Top row: avatar + difficulty */}
         <div className="flex justify-between items-start mb-6">
           <div className="relative avatar-halo">
@@ -59,7 +59,7 @@ export default function ScenarioCard({ scenario }: Props) {
           <span className={cn('inline-block px-3 py-1 text-xs font-bold rounded-full mb-3', ccColor)}>
             {scenario.chiefComplaint}
           </span>
-          <p className="body-md text-on-surface-variant line-clamp-3">{scenario.description}</p>
+          <p className="body-md text-on-surface-variant line-clamp-3 flex-1">{scenario.description}</p>
         </div>
       </div>
 
