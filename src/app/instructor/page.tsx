@@ -818,7 +818,7 @@ function StudentPerformance() {
   useEffect(() => {
     fetch('/api/instructor/students')
       .then((r) => r.json())
-      .then((data) => { setStudents(Array.isArray(data) ? data : []); setLoading(false) })
+      .then((data) => { setStudents(Array.isArray(data) ? data : (data.data ?? [])); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])
 

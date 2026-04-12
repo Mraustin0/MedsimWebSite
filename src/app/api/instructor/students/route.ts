@@ -1,18 +1,25 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 
-export async function GET() {
+const PAGE_SIZE = 50
+
+export async function GET(req: NextRequest) {
   try {
     const auth = await getServerSession(authOptions)
-    if (!auth?.user || (auth.user as any).role !== 'INSTRUCTOR') {
+    if (!auth?.user || auth.user.role !== 'INSTRUCTOR') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get all students with their sessions and feedback
+    const { searchParams } = req.nextUrl
+    const page = Math.max(0, parseInt(searchParams.get('page') ?? '0'))
+
+    // Get students with pagination
     const students = await prisma.user.findMany({
       where: { role: 'STUDENT' },
+      skip: page * PAGE_SIZE,
+      take: PAGE_SIZE,
       select: {
         id: true,
         name: true,
@@ -84,7 +91,9 @@ export async function GET() {
       }
     })
 
-    return NextResponse.json(result)
+    const total = await prisma.user.count({ where: { role: 'STUDENT' } })
+
+    return NextResponse.json({ data: result, total, page, pageSize: PAGE_SIZE })
   } catch (error) {
     console.error('[/api/instructor/students]', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
