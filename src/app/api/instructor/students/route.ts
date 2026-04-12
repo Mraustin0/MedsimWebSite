@@ -21,6 +21,7 @@ export async function GET() {
         createdAt: true,
         sessions: {
           where: { endedAt: { not: null } },
+          take: 100,
           select: {
             id: true,
             scenarioId: true,

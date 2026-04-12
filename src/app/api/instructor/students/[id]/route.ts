@@ -28,6 +28,7 @@ export async function GET(
           include: {
             feedback: true,
             messages: {
+              take: 200,
               select: { role: true, content: true, createdAt: true },
               orderBy: { createdAt: 'asc' },
             },
