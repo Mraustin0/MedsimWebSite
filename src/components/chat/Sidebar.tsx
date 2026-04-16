@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Scenario } from '@/types'
 import { cn } from '@/components/ui/cn'
 
@@ -12,6 +12,15 @@ interface SidebarProps {
   onEndSession: () => void
 }
 
+interface SessionHistoryItem {
+  id: string
+  scenarioId: string
+  startedAt: string
+  durationSeconds: number
+  scores: { overall: number } | null
+  oldcartsCompleted: number
+}
+
 export default function Sidebar({
   scenario,
   secondsLeft,
@@ -22,6 +31,16 @@ export default function Sidebar({
   onEndSession,
 }: SidebarProps) {
   const SESSION_DURATION = 10 * 60
+  const [history, setHistory] = useState<SessionHistoryItem[] | null>(null)
+
+  useEffect(() => {
+    fetch('/api/session/history')
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) setHistory(data.slice(0, 3))
+      })
+      .catch(() => setHistory([]))
+  }, [])
 
   return (
     <aside className="hidden lg:flex w-[320px] xl:w-[360px] flex-shrink-0 flex-col gap-6 p-6 bg-surface-container-low border-r border-outline-variant/10 fixed top-0 left-0 h-full overflow-y-auto z-30 chat-scroll">
@@ -38,7 +57,7 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* Finish Button moved to top */}
+      {/* Finish Button */}
       <button
         onClick={onEndSession}
         className="w-full py-3.5 rounded-2xl bg-error/5 text-error hover:bg-error/10 font-bold transition-all active:scale-95 border border-error/10 flex items-center justify-center gap-2"
@@ -54,13 +73,13 @@ export default function Sidebar({
         <div className="avatar-halo mb-4">
           <div className="w-20 h-20 rounded-full bg-surface-container flex items-center justify-center text-4xl relative z-10 shadow-inner text-on-surface-variant">
             <span className="material-symbols-outlined !text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>
-              {scenario.gender === 'male' ? 'person' : 'person'}
+              {scenario.gender === 'male' ? 'man' : 'woman'}
             </span>
           </div>
         </div>
         <h3 className="headline-md text-on-surface mb-1 tracking-tight">{scenario.name}</h3>
         <p className="body-md text-on-surface-variant/80 font-medium">{scenario.age} ปี • {scenario.gender === 'male' ? 'ชาย' : 'หญิง'}</p>
-        
+
         <div className="mt-4 px-4 py-2 bg-secondary-container/30 text-on-secondary-container text-xs font-bold rounded-2xl border border-secondary-container/20">
           {scenario.chiefComplaint}
         </div>
@@ -85,9 +104,9 @@ export default function Sidebar({
             {formatTime(secondsLeft)}
           </span>
         </div>
-        
+
         <div className="h-2 w-full bg-surface-container rounded-full overflow-hidden">
-          <div 
+          <div
             className={cn(
               'h-full transition-all duration-1000 ease-linear rounded-full',
               secondsLeft <= 60 ? 'bg-error' : secondsLeft <= 180 ? 'bg-amber-500' : 'bg-primary'
@@ -116,15 +135,15 @@ export default function Sidebar({
               onClick={() => toggleOldcarts(item.key)}
               className={cn(
                 'flex items-center gap-3 text-left transition-all p-3 rounded-2xl group border border-transparent',
-                item.checked 
-                  ? 'bg-primary-container/20 text-on-primary-container border-primary/10' 
+                item.checked
+                  ? 'bg-primary-container/20 text-on-primary-container border-primary/10'
                   : 'text-on-surface-variant/70 hover:bg-surface-container hover:text-on-surface'
               )}
             >
               <div className={cn(
                 'w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0 transition-all border',
-                item.checked 
-                  ? 'bg-primary text-on-primary border-primary' 
+                item.checked
+                  ? 'bg-primary text-on-primary border-primary'
                   : 'bg-surface-container-lowest border-outline-variant/30 group-hover:border-primary/30'
               )}>
                 {item.checked && <span className="material-symbols-outlined !text-sm">check</span>}
@@ -140,14 +159,48 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* Session History Placeholder */}
+      {/* Recent Sessions — real data */}
       <div className="mt-auto pt-6 border-t border-outline-variant/10">
         <p className="label-sm text-on-surface-variant/50 font-bold mb-3 uppercase tracking-widest">Recent Sessions</p>
         <div className="flex flex-col gap-2">
-          <div className="p-3 rounded-xl bg-surface-container/30 border border-outline-variant/5 opacity-50">
-            <p className="text-[10px] font-bold text-on-surface-variant">2024-04-08 14:20</p>
-            <p className="text-xs font-medium text-on-surface truncate">Previous Simulation</p>
-          </div>
+          {history === null ? (
+            // loading skeleton
+            [0, 1, 2].map((i) => (
+              <div key={i} className="p-3 rounded-xl border border-outline-variant/5 space-y-1.5">
+                <div className="skeleton h-2.5 w-24" />
+                <div className="skeleton h-3 w-32" />
+              </div>
+            ))
+          ) : history.length === 0 ? (
+            <p className="text-xs text-on-surface-variant/40 font-medium px-1">ยังไม่มี session ที่ผ่านมา</p>
+          ) : (
+            history.map((s) => {
+              const date = new Date(s.startedAt)
+              const label = date.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })
+              const time = date.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })
+              const score = s.scores?.overall ?? null
+              return (
+                <div key={s.id} className="p-3 rounded-xl bg-surface-container/30 border border-outline-variant/5 flex justify-between items-start gap-2">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold text-on-surface-variant/50 tabular-nums">{label} · {time}</p>
+                    <p className="text-xs font-semibold text-on-surface truncate">
+                      {s.oldcartsCompleted}/8 OLDCARTS
+                    </p>
+                  </div>
+                  {score !== null && (
+                    <span className={cn(
+                      'flex-shrink-0 text-[10px] font-black px-2 py-0.5 rounded-full',
+                      score >= 80 ? 'bg-primary-container text-on-primary-container' :
+                      score >= 60 ? 'bg-tertiary-container text-on-tertiary-container' :
+                      'bg-error-container text-on-error-container'
+                    )}>
+                      {score}%
+                    </span>
+                  )}
+                </div>
+              )
+            })
+          )}
         </div>
       </div>
     </aside>

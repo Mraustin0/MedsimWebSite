@@ -13,7 +13,8 @@ export default function ChatInput({ input, setInput, onSend, isLoading, hints }:
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    // Send on Enter (no shift) OR Cmd/Ctrl+Enter
+    if (e.key === 'Enter' && (!e.shiftKey || e.metaKey || e.ctrlKey)) {
       e.preventDefault()
       onSend()
     }
@@ -49,7 +50,7 @@ export default function ChatInput({ input, setInput, onSend, isLoading, hints }:
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             disabled={isLoading}
-            placeholder="ถามคำถามเพื่อซักประวัติ..."
+            placeholder="ถามคำถามเพื่อซักประวัติ... (Enter ส่ง)"
             rows={1}
             className="w-full resize-none pl-5 pr-12 py-3.5 bg-surface-container/40 border border-outline-variant/15 rounded-2xl text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all disabled:opacity-50 chat-scroll"
             style={{ maxHeight: '120px' }}

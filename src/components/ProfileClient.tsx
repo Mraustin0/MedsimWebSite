@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { cn } from '@/components/ui/cn'
@@ -28,6 +28,8 @@ export default function ProfileClient() {
   const { data: session, update, status } = useSession()
   const [activeView, setActiveView] = useState<ViewType>('Settings')
   const [isSaving, setIsSaving] = useState(false)
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const toast = useToast()
   const confirm = useConfirm()
 
@@ -44,11 +46,20 @@ export default function ProfileClient() {
     systemUpdates: false
   })
 
+  const [localAvatarUrl, setLocalAvatarUrl] = useState<string | null>(null)
+
   const isInstructor = (session?.user as any)?.role === 'INSTRUCTOR'
   const userName = session?.user?.name || (isInstructor ? 'Clinical Instructor' : 'Medical Student')
   const userRole = isInstructor ? 'Clinical Instructor' : 'Medical Student'
   const homeRoute = isInstructor ? '/instructor' : '/dashboard'
-  const userAvatar = (session?.user as any)?.avatarUrl || session?.user?.image || "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=2070&auto=format&fit=crop"
+  const userAvatar = localAvatarUrl || session?.user?.image || "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=2070&auto=format&fit=crop"
+
+  useEffect(() => {
+    fetch('/api/user/me')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data?.avatarUrl) setLocalAvatarUrl(data.avatarUrl) })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     if (session?.user) {
@@ -103,6 +114,55 @@ export default function ProfileClient() {
     } finally {
       setIsSaving(false)
     }
+  }
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('ไฟล์ใหญ่เกินไป', 'กรุณาเลือกรูปที่มีขนาดไม่เกิน 10 MB')
+      e.target.value = ''
+      return
+    }
+    setIsUploadingAvatar(true)
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      const img = new Image()
+      img.onload = async () => {
+        // Resize to max 400×400 on a canvas, export as JPEG ≈ 50-80 KB
+        const MAX = 400
+        const scale = Math.min(1, MAX / Math.max(img.width, img.height))
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.round(img.width * scale)
+        canvas.height = Math.round(img.height * scale)
+        const ctx = canvas.getContext('2d')!
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        const compressed = canvas.toDataURL('image/jpeg', 0.75)
+
+        try {
+          const res = await fetch('/api/user/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ avatarUrl: compressed }),
+          })
+          if (res.ok) {
+            setLocalAvatarUrl(compressed)
+            toast.success('อัปโหลดสำเร็จ', 'รูปโปรไฟล์ของคุณได้รับการอัปเดตแล้ว')
+          } else {
+            toast.error('เกิดข้อผิดพลาด', 'ไม่สามารถอัปโหลดรูปได้ กรุณาลองใหม่')
+          }
+        } catch {
+          toast.error('เกิดข้อผิดพลาด', 'ไม่สามารถอัปโหลดรูปได้ กรุณาลองใหม่')
+        } finally {
+          setIsUploadingAvatar(false)
+        }
+      }
+      img.src = reader.result as string
+    }
+    reader.readAsDataURL(file)
+    // Reset so the same file can be re-selected
+    e.target.value = ''
   }
 
   return (
@@ -219,11 +279,22 @@ export default function ProfileClient() {
                   <div className="w-24 h-24 lg:w-40 lg:h-40 rounded-2xl lg:rounded-[3rem] overflow-hidden border-4 border-primary-container shadow-2xl transition-transform duration-500 group-hover/avatar:scale-105">
                     <img alt="Profile" className="w-full h-full object-cover" src={userAvatar} />
                   </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleAvatarUpload}
+                  />
                   <button
-                    onClick={() => toast.info('Coming Soon', 'อัพโหลดรูปโปรไฟล์จะเปิดให้ใช้งานเร็วๆ นี้')}
-                    className="absolute bottom-0 right-0 bg-primary text-on-primary w-9 h-9 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl flex items-center justify-center shadow-xl border-4 border-surface hover:scale-110 transition-transform active:scale-95"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploadingAvatar}
+                    className="absolute bottom-0 right-0 bg-primary text-on-primary w-9 h-9 lg:w-12 lg:h-12 rounded-xl lg:rounded-2xl flex items-center justify-center shadow-xl border-4 border-surface hover:scale-110 transition-transform active:scale-95 disabled:opacity-60"
                   >
-                    <span className="material-symbols-outlined !text-xl">edit</span>
+                    {isUploadingAvatar
+                      ? <div className="w-4 h-4 border-2 border-on-primary/40 border-t-on-primary rounded-full animate-spin" />
+                      : <span className="material-symbols-outlined !text-xl">edit</span>
+                    }
                   </button>
                 </div>
 
@@ -249,7 +320,7 @@ export default function ProfileClient() {
                     ] : [
                       { icon: 'mail', label: 'Institutional Email', value: session?.user?.email || '', readonly: true },
                       { icon: 'school', label: 'Year of Study', value: formData.yearOfStudy, key: 'yearOfStudy' },
-                      { icon: 'stethoscope', label: 'Specialty Interest', value: formData.specialty, key: 'specialty' },
+                      { icon: 'stethoscope', label: 'Faculty', value: formData.specialty, key: 'specialty' },
                       { icon: 'domain', label: 'University', value: formData.university, key: 'university' },
                     ]).map((info) => (
                       <div key={info.label} className="flex items-center gap-4 group/info">
@@ -310,26 +381,16 @@ export default function ProfileClient() {
                 </div>
               </div>
 
-              <div className="cta-gradient text-on-primary p-10 rounded-[2.5rem] shadow-2xl shadow-primary/30 relative overflow-hidden group">
-                <span className="material-symbols-outlined absolute -right-4 -bottom-4 text-9xl opacity-10 group-hover:scale-110 transition-transform duration-700" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-                {isInstructor ? (
-                  <>
-                    <h4 className="text-sm font-black uppercase tracking-widest mb-4 opacity-60">Instructor Hub</h4>
-                    <p className="text-lg font-bold leading-relaxed mb-8 italic">
-                      &ldquo;Manage your scenarios, track student progress, and shape the next generation of clinicians.&rdquo;
-                    </p>
-                    <button onClick={() => router.push('/instructor')} className="text-[10px] font-black uppercase tracking-[0.2em] border-b-2 border-on-primary/20 pb-1 hover:border-on-primary transition-all">Go to Dashboard</button>
-                  </>
-                ) : (
-                  <>
-                    <h4 className="text-sm font-black uppercase tracking-widest mb-4 opacity-60">Mentor Advice</h4>
-                    <p className="text-lg font-bold leading-relaxed mb-8 italic">
-                      &ldquo;Alex, you&apos;ve shown great progress in your rhythm analysis. Focus on the next 3 advanced simulations to unlock your Senior Resident certification.&rdquo;
-                    </p>
-                    <button className="text-[10px] font-black uppercase tracking-[0.2em] border-b-2 border-on-primary/20 pb-1 hover:border-on-primary transition-all">View Career Path</button>
-                  </>
-                )}
-              </div>
+              {isInstructor && (
+                <div className="cta-gradient text-on-primary p-10 rounded-[2.5rem] shadow-2xl shadow-primary/30 relative overflow-hidden group">
+                  <span className="material-symbols-outlined absolute -right-4 -bottom-4 text-9xl opacity-10 group-hover:scale-110 transition-transform duration-700" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
+                  <h4 className="text-sm font-black uppercase tracking-widest mb-4 opacity-60">Instructor Hub</h4>
+                  <p className="text-lg font-bold leading-relaxed mb-8 italic">
+                    &ldquo;Manage your scenarios, track student progress, and shape the next generation of clinicians.&rdquo;
+                  </p>
+                  <button onClick={() => router.push('/instructor')} className="text-[10px] font-black uppercase tracking-[0.2em] border-b-2 border-on-primary/20 pb-1 hover:border-on-primary transition-all">Go to Dashboard</button>
+                </div>
+              )}
             </aside>
 
             {/* Settings Content */}

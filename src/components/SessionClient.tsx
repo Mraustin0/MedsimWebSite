@@ -24,6 +24,7 @@ interface Props {
 export default function SessionClient({ scenario }: Props) {
   const router = useRouter()
   const [showPatientInfo, setShowPatientInfo] = useState(false)
+  const [showOldcartsSheet, setShowOldcartsSheet] = useState(false)
 
   const { oldcarts, checkedCount, detectFromMessage, toggle, reset: resetOldcarts } = useOldcarts()
 
@@ -47,6 +48,15 @@ export default function SessionClient({ scenario }: Props) {
 
   const handleEnd = () => { stopTimer(); endSession() }
   const handleRetry = () => { resetSession(); resetOldcarts(); resetTimer(); initSession() }
+
+  // Esc → end session confirm
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !feedback && !isEndingSession) handleEnd()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [feedback, isEndingSession]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (isEndingSession) {
     return (
@@ -143,6 +153,106 @@ export default function SessionClient({ scenario }: Props) {
           />
         </main>
       </div>
+
+      {/* ── Mobile OLDCARTS floating button ── */}
+      <button
+        onClick={() => setShowOldcartsSheet(true)}
+        className="lg:hidden fixed bottom-24 right-4 z-40 w-14 h-14 cta-gradient rounded-2xl shadow-xl shadow-primary/30 flex flex-col items-center justify-center gap-0.5 active:scale-95 transition-all"
+        aria-label="Open OLDCARTS checklist"
+      >
+        <span className="material-symbols-outlined !text-xl text-white">checklist</span>
+        <span className={cn(
+          'text-[9px] font-black text-white/90 tabular-nums',
+        )}>
+          {checkedCount}/8
+        </span>
+      </button>
+
+      {/* ── Mobile OLDCARTS bottom sheet ── */}
+      {showOldcartsSheet && (
+        <div className="lg:hidden fixed inset-0 z-50 flex flex-col justify-end">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setShowOldcartsSheet(false)}
+          />
+
+          {/* Sheet */}
+          <div className="relative bg-surface rounded-t-[2rem] p-6 pb-10 space-y-5 animate-slide-up max-h-[80vh] overflow-y-auto chat-scroll">
+            {/* Handle bar */}
+            <div className="w-10 h-1 bg-outline-variant/30 rounded-full mx-auto mb-2" />
+
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-black text-on-surface text-lg">History Checklist</h3>
+                <p className="text-xs text-on-surface-variant/60 font-medium">OLDCARTS Framework</p>
+              </div>
+              <span className={cn(
+                'px-3 py-1 rounded-full text-xs font-black border',
+                checkedCount >= 6
+                  ? 'bg-primary text-on-primary border-primary'
+                  : 'bg-surface-container text-on-surface-variant border-outline-variant/10'
+              )}>
+                {checkedCount}/8
+              </span>
+            </div>
+
+            {/* Timer strip */}
+            <div className="flex items-center gap-3 bg-surface-container-low rounded-2xl px-4 py-3">
+              <span className={cn(
+                'material-symbols-outlined !text-xl',
+                secondsLeft <= 60 ? 'text-error' : 'text-primary'
+              )}>timer</span>
+              <div className="flex-1">
+                <div className="h-1.5 bg-surface-container rounded-full overflow-hidden">
+                  <div
+                    className={cn('h-full rounded-full transition-all duration-1000', secondsLeft <= 60 ? 'bg-error' : secondsLeft <= 180 ? 'bg-amber-500' : 'bg-primary')}
+                    style={{ width: `${(secondsLeft / SESSION_DURATION) * 100}%` }}
+                  />
+                </div>
+              </div>
+              <span className={cn('font-mono text-sm font-black', secondsLeft <= 60 ? 'text-error' : 'text-primary')}>
+                {formatTime(secondsLeft)}
+              </span>
+            </div>
+
+            {/* OLDCARTS items */}
+            <div className="space-y-2">
+              {oldcarts.map((item) => (
+                <button
+                  key={item.key}
+                  onClick={() => toggle(item.key)}
+                  className={cn(
+                    'w-full flex items-center gap-3 p-4 rounded-2xl transition-all border text-left',
+                    item.checked
+                      ? 'bg-primary-container/20 border-primary/10 text-on-primary-container'
+                      : 'border-outline-variant/10 text-on-surface-variant hover:bg-surface-container'
+                  )}
+                >
+                  <div className={cn(
+                    'w-6 h-6 rounded-xl flex items-center justify-center flex-shrink-0 border transition-all',
+                    item.checked ? 'bg-primary border-primary text-on-primary' : 'bg-surface-container border-outline-variant/30'
+                  )}>
+                    {item.checked && <span className="material-symbols-outlined !text-sm">check</span>}
+                  </div>
+                  <span className={cn('text-sm font-semibold', item.checked && 'line-through opacity-50')}>
+                    {item.label}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* End session button */}
+            <button
+              onClick={() => { setShowOldcartsSheet(false); handleEnd() }}
+              className="w-full py-4 rounded-2xl bg-error/10 text-error font-black border border-error/20 flex items-center justify-center gap-2 active:scale-95 transition-all"
+            >
+              <span className="material-symbols-outlined !text-xl">stop_circle</span>
+              End Simulation
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

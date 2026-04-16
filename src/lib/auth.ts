@@ -49,7 +49,7 @@ export const authOptions: NextAuthOptions = {
             id: user.id,
             email: user.email,
             name: user.name,
-            role: user.role,
+            role: user.role,  
             yearOfStudy: user.yearOfStudy,
             specialty: user.specialty,
             university: user.university,
@@ -91,12 +91,13 @@ export const authOptions: NextAuthOptions = {
         token.yearOfStudy = user.yearOfStudy
         token.specialty = user.specialty
         token.university = user.university
-        token.avatarUrl = user.avatarUrl
+        // avatarUrl intentionally excluded — can be large base64 and bloat the JWT cookie
       }
-      
-      // Handle session updates (e.g. updating profile)
+
+      // Handle session updates — never spread avatarUrl into the token
       if (trigger === "update" && session) {
-        return { ...token, ...session.user }
+        const { avatarUrl: _ignored, ...rest } = session.user ?? {}
+        return { ...token, ...rest }
       }
 
       return token
@@ -108,7 +109,7 @@ export const authOptions: NextAuthOptions = {
         session.user.yearOfStudy = token.yearOfStudy
         session.user.specialty = token.specialty
         session.user.university = token.university
-        session.user.avatarUrl = token.avatarUrl
+        // avatarUrl is NOT stored in the JWT — fetch from /api/user/me instead
       }
       return session
     },
