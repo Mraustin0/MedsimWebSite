@@ -7,6 +7,7 @@ import FeedbackPanel from '@/components/FeedbackPanel'
 import { useSession } from '@/hooks/useSession'
 import { useTimer } from '@/hooks/useTimer'
 import { useOldcarts } from '@/hooks/useOldcarts'
+import { useSound } from '@/hooks/useSound'
 
 // Import new modular components
 import Sidebar from '@/components/chat/Sidebar'
@@ -25,17 +26,26 @@ export default function SessionClient({ scenario }: Props) {
   const router = useRouter()
   const [showPatientInfo, setShowPatientInfo] = useState(false)
   const [showOldcartsSheet, setShowOldcartsSheet] = useState(false)
+  const [soundEnabled, setSoundEnabled] = useState(true)
+  const playSound = useSound(soundEnabled)
 
   const { oldcarts, checkedCount, detectFromMessage, toggle, reset: resetOldcarts } = useOldcarts()
 
   const {
     messages, input, setInput, isLoading, isEndingSession, feedback, chatError,
-    hints, userQuestionCount,
+    hints, userQuestionCount, hintsUsedCount, onHintUsed,
     initSession, sendMessage, endSession, resetSession,
   } = useSession({
     scenario,
-    onMessageSent: detectFromMessage,
+    onMessageSent: (text) => { detectFromMessage(text); playSound('send') },
   })
+
+  // Play sound when new AI message arrives
+  useEffect(() => {
+    if (messages.length > 0 && messages[messages.length - 1]?.role === 'assistant') {
+      playSound('receive')
+    }
+  }, [messages.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const { secondsLeft, stop: stopTimer, reset: resetTimer, formatTime } = useTimer({
     duration: SESSION_DURATION,
@@ -150,6 +160,9 @@ export default function SessionClient({ scenario }: Props) {
             onSend={sendMessage}
             isLoading={isLoading}
             hints={hints}
+            onHintUsed={() => { onHintUsed(); playSound('hint') }}
+            soundEnabled={soundEnabled}
+            onToggleSound={() => setSoundEnabled(v => !v)}
           />
         </main>
       </div>

@@ -7,6 +7,7 @@ import { DifficultyLevel } from '@/types'
 import { cn } from '@/components/ui/cn'
 import { useToast } from '@/components/ui/Toast'
 import { useConfirm } from '@/components/ui/ConfirmDialog'
+import NotificationBell from '@/components/NotificationBell'
 
 type InstructorView = 'Dashboard' | 'Scenarios' | 'Create' | 'Students' | 'Profile'
 
@@ -147,6 +148,9 @@ export default function InstructorPage() {
         {/* Top Bar */}
         <header className="sticky top-0 z-40 w-full bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 flex justify-between items-center px-4 lg:px-10 py-3.5 gap-4">
           <span className="px-3 py-1 bg-secondary-container/20 text-secondary text-[10px] font-black uppercase tracking-widest rounded-full border border-secondary/10 shrink-0">Faculty</span>
+          <div className="flex items-center gap-3">
+            <NotificationBell />
+          </div>
           <div
             className="flex items-center gap-3 cursor-pointer group"
             onClick={() => setActiveView('Profile')}

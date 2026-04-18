@@ -26,7 +26,6 @@ const ccColors: Record<string, string> = {
   'ปวดท้อง': 'bg-orange-100 text-orange-800',
 }
 
-
 interface Props {
   scenario: Scenario
 }

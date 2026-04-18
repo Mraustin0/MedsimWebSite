@@ -8,6 +8,8 @@ import ScenarioCard from '@/components/ScenarioCard'
 import { cn } from '@/components/ui/cn'
 import { useToast } from '@/components/ui/Toast'
 import { useConfirm } from '@/components/ui/ConfirmDialog'
+import NotificationBell from '@/components/NotificationBell'
+import OnboardingTour from '@/components/OnboardingTour'
 
 const FILTERS: { label: string; value: DifficultyLevel | 'all' }[] = [
   { label: 'ทั้งหมด', value: 'all' },
@@ -85,6 +87,7 @@ export default function DashboardClient({ scenarios }: Props) {
         return <DashboardView scenarios={scenarios} setActiveView={setActiveView} />
       case 'Simulations':
         return <SimulationsView scenarios={filtered} filter={filter} setFilter={setFilter} />
+
       case 'Library':
         return <LibraryView />
       case 'Performance':
@@ -96,6 +99,7 @@ export default function DashboardClient({ scenarios }: Props) {
 
   return (
     <div className="min-h-screen bg-surface selection:bg-primary-container selection:text-on-primary-container">
+      <OnboardingTour />
       {/* ===== SIDEBAR: Hidden on mobile, flex on desktop ===== */}
       <aside className="fixed left-0 top-0 h-screen w-[72px] hover:w-64 bg-surface-container-lowest hidden lg:flex flex-col py-6 gap-y-8 z-50 border-r border-outline-variant/10 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] group/sidebar overflow-hidden premium-shadow">
         
@@ -231,10 +235,9 @@ export default function DashboardClient({ scenarios }: Props) {
           </div>
 
           <div className="flex items-center gap-6 lg:gap-8">
-            <button className="hidden lg:block relative p-2.5 text-on-surface-variant hover:bg-surface-container rounded-2xl transition-all active:scale-95 group">
-              <span className="material-symbols-outlined !text-2xl">notifications</span>
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-error rounded-full border-2 border-surface"></span>
-            </button>
+            <div className="hidden lg:block">
+              <NotificationBell />
+            </div>
 
             {/* PROFILE BUG FIX: Clean, High-Contrast Design */}
             <div className="flex items-center gap-4 pl-3 lg:pl-6 lg:border-l border-outline-variant/10" onClick={handleProfileClick} style={{ cursor: 'pointer' }}>
@@ -887,6 +890,14 @@ function PerformanceView({ setActiveView }: { setActiveView: (v: ViewType) => vo
           </div>
         </div>
 
+        {/* Score Trend Chart */}
+        {withFeedback.length >= 2 && (
+          <div className="col-span-12 bg-surface-container-lowest rounded-[3rem] p-5 lg:p-10 premium-shadow border border-outline-variant/5">
+            <h3 className="text-xl lg:text-2xl font-black text-on-surface tracking-tight mb-6">Score Trend</h3>
+            <ScoreTrendChart sessions={withFeedback.slice(0, 10).reverse()} />
+          </div>
+        )}
+
         {/* Session History */}
         <div className="col-span-12 space-y-4">
           <h3 className="text-xl lg:text-2xl font-black text-on-surface tracking-tight px-2">Recent Sessions</h3>
@@ -922,6 +933,57 @@ function PerformanceView({ setActiveView }: { setActiveView: (v: ViewType) => vo
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+/* ── Score trend line chart (pure SVG, no lib needed) ── */
+function ScoreTrendChart({ sessions }: { sessions: SessionHistory[] }) {
+  const W = 600, H = 160, PAD = 24
+  const scores = sessions.map((s) => s.scores?.overall ?? 0)
+  const min = Math.max(0, Math.min(...scores) - 10)
+  const max = Math.min(100, Math.max(...scores) + 10)
+  const xStep = (W - PAD * 2) / Math.max(scores.length - 1, 1)
+
+  const toX = (i: number) => PAD + i * xStep
+  const toY = (v: number) => H - PAD - ((v - min) / (max - min || 1)) * (H - PAD * 2)
+
+  const polyline = scores.map((v, i) => `${toX(i)},${toY(v)}`).join(' ')
+  const area = [
+    `M ${toX(0)},${H - PAD}`,
+    ...scores.map((v, i) => `L ${toX(i)},${toY(v)}`),
+    `L ${toX(scores.length - 1)},${H - PAD}`,
+    'Z',
+  ].join(' ')
+
+  return (
+    <div className="w-full overflow-x-auto">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minWidth: 280 }}>
+        <defs>
+          <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#006948" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#006948" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {[0, 25, 50, 75, 100].map((v) => (
+          <line key={v} x1={PAD} y1={toY(v)} x2={W - PAD} y2={toY(v)}
+            stroke="#ABADAE" strokeWidth="0.5" strokeDasharray="4,4" />
+        ))}
+        <path d={area} fill="url(#trendGrad)" />
+        <polyline points={polyline} fill="none" stroke="#006948" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+        {scores.map((v, i) => (
+          <circle key={i} cx={toX(i)} cy={toY(v)} r="4" fill="#006948" />
+        ))}
+        {scores.map((v, i) => (
+          <text key={i} x={toX(i)} y={toY(v) - 10} textAnchor="middle" fontSize="9" fontWeight="800" fill="#006948">{v}%</text>
+        ))}
+        {sessions.map((s, i) => {
+          const d = new Date(s.startedAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })
+          return (
+            <text key={i} x={toX(i)} y={H - 4} textAnchor="middle" fontSize="8" fontWeight="600" fill="#595C5D" opacity="0.6">{d}</text>
+          )
+        })}
+      </svg>
     </div>
   )
 }

@@ -98,6 +98,7 @@ export interface Feedback {
   tips: string[]
   totalQuestions: number
   oldcartsCompleted: number
+  hintsUsed?: number
 }
 
 export interface User {
@@ -127,4 +128,5 @@ export interface FeedbackRequest {
   transcript: string
   scenarioId: string
   durationSeconds: number
+  hintsUsed?: number
 }

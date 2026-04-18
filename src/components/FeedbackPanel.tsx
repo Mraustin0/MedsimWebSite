@@ -102,6 +102,35 @@ export default function FeedbackPanel({ feedback, scenario, durationSeconds, tot
   const router = useRouter()
   const mins = Math.floor(durationSeconds / 60)
   const secs = durationSeconds % 60
+  const [copied, setCopied] = useState(false)
+
+  const handleShare = async () => {
+    const text = [
+      `📋 MedSim Results — ${scenario.name}`,
+      `Overall: ${feedback.scores.overall}%`,
+      `Time: ${mins}:${secs.toString().padStart(2, '0')}`,
+      `OLDCARTS: ${feedback.oldcartsCompleted}/8`,
+      ``,
+      `Strengths: ${feedback.good.slice(0, 2).join(', ') || '-'}`,
+      `To Improve: ${feedback.missed.slice(0, 2).join(', ') || '-'}`,
+    ].join('\n')
+
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Fallback
+      const el = document.createElement('textarea')
+      el.value = text
+      document.body.appendChild(el)
+      el.select()
+      document.execCommand('copy')
+      document.body.removeChild(el)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
 
   // mounted flag — lets CSS transitions fire after first paint
   const [mounted, setMounted] = useState(false)
@@ -188,10 +217,10 @@ export default function FeedbackPanel({ feedback, scenario, durationSeconds, tot
           </div>
 
           <div className="bg-surface-container-lowest p-5 rounded-[2rem] premium-shadow-md border border-outline-variant/5 flex flex-col justify-between h-36">
-            <span className="material-symbols-outlined !text-2xl text-primary">verified_user</span>
+            <span className="material-symbols-outlined !text-2xl text-tertiary">tips_and_updates</span>
             <div>
-              <p className="text-[10px] font-black tracking-widest uppercase text-on-surface-variant/40 mb-1">Safety Score</p>
-              <p className="text-2xl font-black text-on-surface tracking-tighter">{feedback.scores.overall >= 80 ? 'A+' : feedback.scores.overall >= 60 ? 'B' : 'C'}</p>
+              <p className="text-[10px] font-black tracking-widest uppercase text-on-surface-variant/40 mb-1">Hints Used</p>
+              <p className="text-2xl font-black text-on-surface tracking-tighter">{feedback.hintsUsed ?? 0}</p>
             </div>
           </div>
 
@@ -301,6 +330,18 @@ export default function FeedbackPanel({ feedback, scenario, durationSeconds, tot
               className="flex-1 py-5 rounded-[1.75rem] text-on-surface-variant font-black text-xs uppercase tracking-[0.2em] border border-outline-variant/20 hover:bg-surface-container-low transition-all active:scale-[0.98]"
             >
               Return to Dashboard
+            </button>
+            <button
+              onClick={handleShare}
+              className={cn(
+                'py-5 px-6 rounded-[1.75rem] font-black text-xs border transition-all active:scale-[0.98] flex items-center gap-2',
+                copied
+                  ? 'bg-primary text-on-primary border-primary'
+                  : 'text-on-surface-variant border-outline-variant/20 hover:bg-surface-container-low'
+              )}
+              title="Copy results to clipboard"
+            >
+              <span className="material-symbols-outlined !text-lg">{copied ? 'check' : 'share'}</span>
             </button>
             <button
               onClick={() => window.print()}
