@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { cn } from '@/components/ui/cn'
+import { StudentRowSkeleton } from '@/components/ui/Skeleton'
 import type { StudentSummary, StudentDetail } from './types'
 
 export default function StudentPerformance() {
@@ -234,8 +235,8 @@ export default function StudentPerformance() {
       </header>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="w-10 h-10 rounded-full border-3 border-secondary/20 border-t-secondary animate-spin" />
+        <div className="space-y-0 bg-surface-container-lowest rounded-2xl lg:rounded-3xl border border-outline-variant/5 overflow-hidden">
+          {[1, 2, 3, 4, 5].map((i) => <StudentRowSkeleton key={i} />)}
         </div>
       ) : students.length === 0 ? (
         <div className="py-16 flex flex-col items-center justify-center bg-surface-container/20 rounded-2xl lg:rounded-3xl border-2 border-dashed border-outline-variant/20">

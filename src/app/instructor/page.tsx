@@ -5,6 +5,7 @@ import { useSession, signOut } from 'next-auth/react'
 import { cn } from '@/components/ui/cn'
 import { useConfirm } from '@/components/ui/ConfirmDialog'
 import NotificationBell from '@/components/NotificationBell'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
 
 import type { InstructorView, ScenarioRecord } from './_components/types'
 import InstructorDashboard from './_components/InstructorDashboard'
@@ -19,6 +20,14 @@ const NAV_ITEMS: { icon: string; label: InstructorView }[] = [
   { icon: 'group', label: 'Students' },
   { icon: 'add_circle', label: 'Create' },
 ]
+
+const VIEW_LABELS: Record<InstructorView, string> = {
+  Dashboard: 'Dashboard',
+  Scenarios: 'Scenarios',
+  Students: 'Students',
+  Create: 'Create',
+  Profile: 'Profile',
+}
 
 export default function InstructorPage() {
   const { data: session } = useSession()
@@ -44,25 +53,27 @@ export default function InstructorPage() {
   }
 
   const renderContent = () => {
+    const wrap = (node: React.ReactNode, section: string) => (
+      <ErrorBoundary section={section}>{node}</ErrorBoundary>
+    )
     switch (activeView) {
       case 'Dashboard':
-        return <InstructorDashboard setActiveView={setActiveView} />
+        return wrap(<InstructorDashboard setActiveView={setActiveView} />, 'Dashboard')
       case 'Scenarios':
-        return <ScenarioList onEdit={handleEdit} />
+        return wrap(<ScenarioList onEdit={handleEdit} />, 'Scenarios')
       case 'Students':
-        return <StudentPerformance />
+        return wrap(<StudentPerformance />, 'Students')
       case 'Create':
-        return (
+        return wrap(
           <CreateScenario
             editing={editingScenario}
             onCreated={() => { setEditingScenario(null); setActiveView('Scenarios') }}
             onCancel={() => { setEditingScenario(null); setActiveView('Scenarios') }}
-          />
-        )
+          />, 'Create Scenario')
       case 'Profile':
-        return <InstructorProfile />
+        return wrap(<InstructorProfile />, 'Profile')
       default:
-        return <InstructorDashboard setActiveView={setActiveView} />
+        return wrap(<InstructorDashboard setActiveView={setActiveView} />, 'Dashboard')
     }
   }
 
@@ -136,7 +147,11 @@ export default function InstructorPage() {
 
         {/* Top Bar */}
         <header className="sticky top-0 z-40 w-full bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 flex justify-between items-center px-4 lg:px-10 py-3.5 gap-4">
-          <span className="px-3 py-1 bg-secondary-container/20 text-secondary text-[10px] font-black uppercase tracking-widest rounded-full border border-secondary/10 shrink-0">Faculty</span>
+          {/* Desktop: Faculty badge | Mobile: current view name */}
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="hidden lg:inline-flex px-3 py-1 bg-secondary-container/20 text-secondary text-[10px] font-black uppercase tracking-widest rounded-full border border-secondary/10">Faculty</span>
+            <span className="lg:hidden text-base font-black text-on-surface tracking-tight">{VIEW_LABELS[activeView]}</span>
+          </div>
           <div className="flex items-center gap-2">
             <NotificationBell />
             <div
@@ -163,31 +178,34 @@ export default function InstructorPage() {
         </main>
 
         {/* Mobile Bottom Nav */}
-        <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden glass-nav border-t border-outline-variant/15 pb-safe">
-          <div className="flex items-center justify-around py-3 px-4">
-            {NAV_ITEMS.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => setActiveView(item.label)}
-                className={cn(
-                  'flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all active:scale-90',
-                  activeView === item.label ? 'text-secondary font-bold' : 'text-on-surface-variant/60'
-                )}
-              >
-                <span className={cn('material-symbols-outlined !text-2xl', activeView === item.label && '!fill-1')}>{item.icon}</span>
-                <span className="text-[10px] font-black uppercase tracking-[0.15em]">{item.label}</span>
-              </button>
-            ))}
-            <button
-              onClick={() => setActiveView('Profile')}
-              className={cn(
-                'flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all active:scale-90',
-                activeView === 'Profile' ? 'text-secondary font-bold' : 'text-on-surface-variant/60'
-              )}
-            >
-              <span className="material-symbols-outlined !text-2xl">person</span>
-              <span className="text-[10px] font-black uppercase tracking-[0.15em]">Profile</span>
-            </button>
+        <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-surface/95 backdrop-blur-xl border-t border-outline-variant/10 safe-area-inset-bottom">
+          <div className="flex items-center justify-around pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] px-2">
+            {[...NAV_ITEMS, { icon: 'person', label: 'Profile' as InstructorView }].map((item) => {
+              const active = activeView === item.label
+              return (
+                <button
+                  key={item.label}
+                  onClick={() => setActiveView(item.label)}
+                  className="flex flex-col items-center gap-0.5 px-2 py-1 min-w-[56px] active:scale-90 transition-all"
+                >
+                  <div className={cn(
+                    'w-12 h-7 rounded-full flex items-center justify-center transition-all duration-200',
+                    active ? 'bg-secondary-container' : 'bg-transparent'
+                  )}>
+                    <span className={cn(
+                      'material-symbols-outlined !text-xl transition-all',
+                      active ? 'text-secondary' : 'text-on-surface-variant/50'
+                    )} style={active ? { fontVariationSettings: "'FILL' 1" } : {}}>
+                      {item.icon}
+                    </span>
+                  </div>
+                  <span className={cn(
+                    'text-[9px] font-black uppercase tracking-[0.1em] transition-colors',
+                    active ? 'text-secondary' : 'text-on-surface-variant/40'
+                  )}>{item.label}</span>
+                </button>
+              )
+            })}
           </div>
         </nav>
       </div>

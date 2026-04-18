@@ -10,6 +10,8 @@ import { useToast } from '@/components/ui/Toast'
 import { useConfirm } from '@/components/ui/ConfirmDialog'
 import NotificationBell from '@/components/NotificationBell'
 import OnboardingTour from '@/components/OnboardingTour'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
+import { DashboardSkeleton, ScenarioCardSkeleton, PerformanceSkeleton } from '@/components/ui/Skeleton'
 
 const FILTERS: { label: string; value: DifficultyLevel | 'all' }[] = [
   { label: 'ทั้งหมด', value: 'all' },
@@ -82,18 +84,20 @@ export default function DashboardClient({ scenarios }: Props) {
     : scenarios.filter((s) => s.difficulty === filter)
 
   const renderContent = () => {
+    const wrap = (node: React.ReactNode, section: string) => (
+      <ErrorBoundary section={section}>{node}</ErrorBoundary>
+    )
     switch (activeView) {
       case 'Dashboard':
-        return <DashboardView scenarios={scenarios} setActiveView={setActiveView} />
+        return wrap(<DashboardView scenarios={scenarios} setActiveView={setActiveView} />, 'Dashboard')
       case 'Simulations':
-        return <SimulationsView scenarios={filtered} filter={filter} setFilter={setFilter} />
-
+        return wrap(<SimulationsView scenarios={filtered} filter={filter} setFilter={setFilter} />, 'Simulations')
       case 'Library':
-        return <LibraryView />
+        return wrap(<LibraryView />, 'Library')
       case 'Performance':
-        return <PerformanceView setActiveView={setActiveView} />
+        return wrap(<PerformanceView setActiveView={setActiveView} />, 'Performance')
       default:
-        return <DashboardView scenarios={scenarios} setActiveView={setActiveView} />
+        return wrap(<DashboardView scenarios={scenarios} setActiveView={setActiveView} />, 'Dashboard')
     }
   }
 
@@ -263,35 +267,38 @@ export default function DashboardClient({ scenarios }: Props) {
         </main>
 
         {/* Mobile Bottom Nav */}
-        <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden glass-nav border-t border-outline-variant/15 pb-safe">
-          <div className="flex items-center justify-around py-3 px-4">
-            {NAV_ITEMS.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => setActiveView(item.label)}
-                className={cn(
-                  'flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all active:scale-90',
-                  activeView === item.label
-                    ? 'text-primary font-bold'
-                    : 'text-on-surface-variant/60'
-                )}
-              >
-                <span className={cn(
-                  "material-symbols-outlined !text-2xl",
-                  activeView === item.label && "!fill-1"
-                )}>{item.icon}</span>
-                <span className="text-[10px] font-black uppercase tracking-[0.15em]">
-                  {item.label}
-                </span>
-              </button>
-            ))}
-            <button
-              onClick={() => router.push('/profile')}
-              className="flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all active:scale-90 text-on-surface-variant/60"
-            >
-              <span className="material-symbols-outlined !text-2xl">person</span>
-              <span className="text-[10px] font-black uppercase tracking-[0.15em]">Profile</span>
-            </button>
+        <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-surface/95 backdrop-blur-xl border-t border-outline-variant/10">
+          <div className="flex items-center justify-around pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] px-2">
+            {(NAV_ITEMS as { icon: string; label: string }[]).concat([{ icon: 'person', label: 'Profile' }]).map((item) => {
+              const isProfile = item.label === 'Profile'
+              const active = !isProfile && activeView === (item.label as ViewType)
+              return (
+                <button
+                  key={item.label}
+                  onClick={() => isProfile ? router.push('/profile') : setActiveView(item.label as ViewType)}
+                  className="flex flex-col items-center gap-0.5 px-2 py-1 min-w-[56px] active:scale-90 transition-all"
+                >
+                  <div className={cn(
+                    'w-12 h-7 rounded-full flex items-center justify-center transition-all duration-200',
+                    active ? 'bg-primary-container' : 'bg-transparent'
+                  )}>
+                    <span
+                      className={cn(
+                        'material-symbols-outlined !text-xl transition-all',
+                        active ? 'text-primary' : 'text-on-surface-variant/50'
+                      )}
+                      style={active ? { fontVariationSettings: "'FILL' 1" } : {}}
+                    >
+                      {item.icon}
+                    </span>
+                  </div>
+                  <span className={cn(
+                    'text-[9px] font-black uppercase tracking-[0.1em] transition-colors',
+                    active ? 'text-primary' : 'text-on-surface-variant/40'
+                  )}>{item.label}</span>
+                </button>
+              )
+            })}
           </div>
         </nav>
 
@@ -789,13 +796,7 @@ function PerformanceView({ setActiveView }: { setActiveView: (v: ViewType) => vo
     ? Math.round(withFeedback.reduce((sum, s) => sum + s.scores!.overall, 0) / withFeedback.length)
     : 0
 
-  if (loading) {
-    return (
-      <div className="p-10 flex items-center justify-center min-h-[60vh]">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
+  if (loading) return <PerformanceSkeleton />
 
   if (history.length === 0) {
     return (

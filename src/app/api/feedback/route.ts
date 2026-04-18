@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { generateFeedback } from '@/lib/gemini'
 import { FeedbackRequest, Feedback, FeedbackScores } from '@/types'
 import { prisma } from '@/lib/db'
+import { rateLimit, getClientIp } from '@/lib/rateLimit'
 
 const DEFAULT_SCORES: FeedbackScores = {
   onset: 0, location: 0, duration: 0, character: 0,
@@ -9,6 +10,16 @@ const DEFAULT_SCORES: FeedbackScores = {
 }
 
 export async function POST(req: NextRequest) {
+  // Rate limit: 10 feedback requests per 10 minutes per IP
+  const ip = getClientIp(req)
+  const rl = rateLimit(`feedback:${ip}`, { limit: 10, windowSec: 600 })
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: 'กรุณารอสักครู่ก่อนส่ง feedback ใหม่' },
+      { status: 429 }
+    )
+  }
+
   try {
     const body: FeedbackRequest = await req.json()
     const { sessionId, transcript, scenarioId, durationSeconds, hintsUsed = 0 } = body

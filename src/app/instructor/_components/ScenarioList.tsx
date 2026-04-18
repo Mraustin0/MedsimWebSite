@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { cn } from '@/components/ui/cn'
 import { useToast } from '@/components/ui/Toast'
 import { useConfirm } from '@/components/ui/ConfirmDialog'
+import { Skeleton } from '@/components/ui/Skeleton'
 import type { ScenarioRecord } from './types'
 
 export default function ScenarioList({ onEdit }: { onEdit: (s: ScenarioRecord) => void }) {
@@ -42,8 +43,21 @@ export default function ScenarioList({ onEdit }: { onEdit: (s: ScenarioRecord) =
 
   if (loading) {
     return (
-      <div className="p-10 flex items-center justify-center min-h-[60vh]">
-        <div className="w-10 h-10 border-4 border-secondary border-t-transparent rounded-full animate-spin" />
+      <div className="px-5 py-6 lg:px-10 lg:py-10 space-y-4 animate-fade-in">
+        <div className="space-y-2">
+          <Skeleton className="h-10 w-56" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="flex items-center gap-4 p-4 lg:p-5 bg-surface-container-lowest rounded-2xl border border-outline-variant/5">
+            <Skeleton className="w-11 h-11 rounded-2xl shrink-0" />
+            <div className="flex-1 space-y-2">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-3 w-28" />
+            </div>
+            <Skeleton className="h-6 w-16 rounded-full" />
+          </div>
+        ))}
       </div>
     )
   }
