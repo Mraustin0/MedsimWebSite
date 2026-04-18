@@ -489,7 +489,7 @@ export default function ProfileClient() {
                   }}
                   className="px-10 py-4 text-on-surface-variant/40 font-black text-[10px] uppercase tracking-[0.2em] hover:text-on-surface transition-all"
                 >Discard Changes</button>
-                <button 
+                <button
                   disabled={isSaving}
                   onClick={handleSave}
                   className="px-10 py-4 bg-primary text-on-primary font-black text-[10px] uppercase tracking-[0.2em] rounded-2xl shadow-2xl shadow-primary/30 hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
@@ -497,26 +497,42 @@ export default function ProfileClient() {
                   {isSaving ? 'Saving...' : 'Save Configuration'}
                 </button>
               </div>
+
+              {/* Mobile Sign Out — only visible on mobile */}
+              <div className="lg:hidden pt-2 pb-4">
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl border-2 border-error/20 text-error font-black text-sm uppercase tracking-widest hover:bg-error/5 active:scale-95 transition-all"
+                >
+                  <span className="material-symbols-outlined !text-xl">logout</span>
+                  Sign Out
+                </button>
+              </div>
             </section>
           </div>
         </main>
 
         {/* Mobile Bottom Nav */}
-        <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden glass-nav border-t border-outline-variant/15 pb-safe">
-          <div className="flex items-center justify-around py-3 px-4">
+        <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-surface/95 backdrop-blur-xl border-t border-outline-variant/10">
+          <div className="flex items-center justify-around pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] px-1">
             {(isInstructor ? INSTRUCTOR_NAV_ITEMS : STUDENT_NAV_ITEMS).map((item) => (
               <button
                 key={item.label}
                 onClick={() => router.push(item.href)}
-                className="flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all active:scale-90 text-on-surface-variant/60"
+                className="flex flex-col items-center gap-0.5 px-1 py-1 min-w-[52px] active:scale-90 transition-all"
               >
-                <span className="material-symbols-outlined !text-2xl">{item.icon}</span>
-                <span className="text-[10px] font-black uppercase tracking-[0.1em]">{item.label}</span>
+                <div className="w-12 h-7 rounded-full flex items-center justify-center">
+                  <span className="material-symbols-outlined !text-xl text-on-surface-variant/50">{item.icon}</span>
+                </div>
+                <span className="text-[9px] font-black uppercase tracking-[0.08em] text-on-surface-variant/40">{item.label}</span>
               </button>
             ))}
-            <button className="flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all active:scale-90 text-primary font-bold">
-              <span className="material-symbols-outlined !text-2xl !fill-1">person</span>
-              <span className="text-[10px] font-black uppercase tracking-[0.1em]">Profile</span>
+            {/* Profile — active */}
+            <button className="flex flex-col items-center gap-0.5 px-1 py-1 min-w-[52px] active:scale-90 transition-all">
+              <div className="w-12 h-7 rounded-full flex items-center justify-center bg-primary-container">
+                <span className="material-symbols-outlined !text-xl text-primary" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
+              </div>
+              <span className="text-[9px] font-black uppercase tracking-[0.08em] text-primary">Profile</span>
             </button>
           </div>
         </nav>
