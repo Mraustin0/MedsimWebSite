@@ -2,8 +2,22 @@ import { NextRequest, NextResponse } from 'next/server'
 import { chatWithPatient } from '@/lib/gemini'
 import { ChatRequest } from '@/types'
 import { prisma } from '@/lib/db'
+import { rateLimit, getClientIp } from '@/lib/rateLimit'
 
 export async function POST(req: NextRequest) {
+  // Rate limit: 30 messages per minute per IP
+  const ip = getClientIp(req)
+  const rl = rateLimit(`chat:${ip}`, { limit: 30, windowSec: 60 })
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: 'ส่งข้อความบ่อยเกินไป กรุณารอสักครู่' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) },
+      }
+    )
+  }
+
   try {
     const body: ChatRequest = await req.json()
     const { sessionId, message, history, systemPrompt } = body

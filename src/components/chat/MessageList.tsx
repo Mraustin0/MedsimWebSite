@@ -44,15 +44,19 @@ export default function MessageList({ messages, isLoading, scenario }: MessageLi
           <div className="w-8 h-8 rounded-full bg-surface-container-low flex items-center justify-center text-sm flex-shrink-0 mt-1 shadow-sm text-on-surface-variant">
             <span className="material-symbols-outlined !text-base" style={{ fontVariationSettings: "'FILL' 1" }}>person</span>
           </div>
-          <div className="bg-surface-container-low/50 backdrop-blur-sm rounded-2xl rounded-tl-sm px-4 py-3 border border-outline-variant/10">
-            <div className="flex gap-1.5 items-center h-4">
-              {[0, 1, 2].map((i) => (
-                <div
-                  key={i}
-                  className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-bounce"
-                  style={{ animationDelay: `${i * 0.15}s` }}
-                />
-              ))}
+          <div className="flex flex-col gap-1 items-start">
+            <p className="label-sm text-on-surface-variant/70 px-1 font-bold">{scenario.name}</p>
+            <div className="bg-surface-container-low/50 backdrop-blur-sm rounded-2xl rounded-tl-sm px-5 py-3.5 border border-outline-variant/10 flex items-center gap-3">
+              <div className="flex gap-1.5 items-end h-4">
+                {[0, 1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className="typing-dot w-2 h-2 rounded-full bg-primary/60"
+                    style={{ animationDelay: `${i * 0.2}s` }}
+                  />
+                ))}
+              </div>
+              <span className="text-xs text-on-surface-variant/50 font-medium">กำลังตอบ...</span>
             </div>
           </div>
         </div>

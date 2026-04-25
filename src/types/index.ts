@@ -1,3 +1,41 @@
+// ========== NextAuth Type Extensions ==========
+import 'next-auth'
+
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      id: string
+      name?: string | null
+      email?: string | null
+      image?: string | null
+      role: 'STUDENT' | 'INSTRUCTOR'
+      avatarUrl?: string | null
+      yearOfStudy?: string | null
+      specialty?: string | null
+      university?: string | null
+    }
+  }
+
+  interface User {
+    role: 'STUDENT' | 'INSTRUCTOR'
+    avatarUrl?: string | null
+    yearOfStudy?: string | null
+    specialty?: string | null
+    university?: string | null
+  }
+}
+
+declare module 'next-auth/jwt' {
+  interface JWT {
+    id: string
+    role: 'STUDENT' | 'INSTRUCTOR'
+    avatarUrl?: string | null
+    yearOfStudy?: string | null
+    specialty?: string | null
+    university?: string | null
+  }
+}
+
 // ========== Domain Types ==========
 
 export type DifficultyLevel = 'easy' | 'medium' | 'hard'
@@ -60,6 +98,7 @@ export interface Feedback {
   tips: string[]
   totalQuestions: number
   oldcartsCompleted: number
+  hintsUsed?: number
 }
 
 export interface User {
@@ -89,4 +128,5 @@ export interface FeedbackRequest {
   transcript: string
   scenarioId: string
   durationSeconds: number
+  hintsUsed?: number
 }

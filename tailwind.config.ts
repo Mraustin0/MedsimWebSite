@@ -6,7 +6,6 @@ const config: Config = {
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
-  darkMode: 'class',
   theme: {
     extend: {
       colors: {
@@ -82,8 +81,8 @@ const config: Config = {
         'md':   '0.5rem',
         'lg':   '0.75rem',
         'xl':   '1rem',
-        '2xl':  '1.5rem',   // card radius
-        '3xl':  '2rem',     // progress footer
+        '2xl':  '1.5rem',
+        '3xl':  '2rem',
         'full': '9999px',
       },
       boxShadow: {

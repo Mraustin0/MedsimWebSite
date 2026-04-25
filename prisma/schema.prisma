@@ -8,18 +8,20 @@ datasource db {
 }
 
 model User {
-  id          String           @id @default(cuid())
-  name        String
-  email       String           @unique
-  role        Role             @default(STUDENT)
-  avatarUrl   String?
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  specialty   String?
-  university  String?          @default("Khon Kaen University")
-  yearOfStudy String?
-  scenarios   ScenarioRecord[]
-  sessions    Session[]
+  id              String           @id @default(cuid())
+  name            String
+  email           String           @unique
+  passwordHash    String?
+  role            Role             @default(STUDENT)
+  avatarUrl       String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  specialty       String?
+  university      String?          @default("Khon Kaen University")
+  yearOfStudy     String?
+  scenarios       ScenarioRecord[]
+  sessions        Session[]
+  notifications   Notification[]
 }
 
 model ScenarioRecord {
@@ -76,9 +78,23 @@ model Feedback {
   missed            String[]
   tips              String[]
   totalQuestions    Int
+  hintsUsed         Int      @default(0)
   oldcartsCompleted Int
   createdAt         DateTime @default(now())
   session           Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  icon      String   @default("notifications")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 enum Role {

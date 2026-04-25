@@ -2,10 +2,21 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { GoogleGenerativeAI } from '@google/generative-ai'
+import { rateLimit, getClientIp } from '@/lib/rateLimit'
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!)
 
 export async function POST(req: NextRequest) {
+  // Rate limit: 5 AI generations per minute per IP
+  const ip = getClientIp(req)
+  const rl = rateLimit(`scenario-gen:${ip}`, { limit: 5, windowSec: 60 })
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: 'กรุณารอสักครู่ก่อน Generate ใหม่' },
+      { status: 429 }
+    )
+  }
+
   try {
     const auth = await getServerSession(authOptions)
     if (!auth?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

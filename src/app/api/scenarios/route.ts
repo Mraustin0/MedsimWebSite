@@ -7,7 +7,7 @@ import { prisma } from '@/lib/db'
 export async function POST(req: NextRequest) {
   try {
     const auth = await getServerSession(authOptions)
-    if (!auth?.user) {
+    if (!auth?.user || (auth.user as any).role !== 'INSTRUCTOR') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

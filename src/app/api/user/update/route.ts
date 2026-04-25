@@ -11,15 +11,16 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { name, yearOfStudy, specialty, university } = body
+    const { name, yearOfStudy, specialty, university, avatarUrl } = body
 
     const updatedUser = await prisma.user.update({
       where: { email: (session.user as any).email },
       data: {
-        name,
-        yearOfStudy,
-        specialty,
-        university,
+        ...(name !== undefined && { name }),
+        ...(yearOfStudy !== undefined && { yearOfStudy }),
+        ...(specialty !== undefined && { specialty }),
+        ...(university !== undefined && { university }),
+        ...(avatarUrl !== undefined && { avatarUrl }),
       },
     })
 

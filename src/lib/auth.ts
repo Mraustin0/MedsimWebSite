@@ -2,6 +2,7 @@ import { NextAuthOptions } from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 import CredentialsProvider from "next-auth/providers/credentials"
 import { prisma } from "@/lib/db"
+import '@/types'
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
@@ -48,7 +49,7 @@ export const authOptions: NextAuthOptions = {
             id: user.id,
             email: user.email,
             name: user.name,
-            role: user.role,
+            role: user.role,  
             yearOfStudy: user.yearOfStudy,
             specialty: user.specialty,
             university: user.university,
@@ -86,29 +87,29 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id
-        token.role = (user as any).role
-        token.yearOfStudy = (user as any).yearOfStudy
-        token.specialty = (user as any).specialty
-        token.university = (user as any).university
-        token.avatarUrl = (user as any).avatarUrl
+        token.role = user.role
+        token.yearOfStudy = user.yearOfStudy
+        token.specialty = user.specialty
+        token.university = user.university
+        // avatarUrl intentionally excluded — can be large base64 and bloat the JWT cookie
       }
-      
-      // Handle session updates (e.g. updating profile)
+
+      // Handle session updates — never spread avatarUrl into the token
       if (trigger === "update" && session) {
-        return { ...token, ...session.user }
+        const { avatarUrl: _ignored, ...rest } = session.user ?? {}
+        return { ...token, ...rest }
       }
 
       return token
     },
     async session({ session, token }) {
       if (token && session.user) {
-        const t = token as Record<string, unknown>
-        ;(session.user as any).id = t.id
-        ;(session.user as any).role = t.role
-        ;(session.user as any).yearOfStudy = t.yearOfStudy
-        ;(session.user as any).specialty = t.specialty
-        ;(session.user as any).university = t.university
-        ;(session.user as any).avatarUrl = t.avatarUrl
+        session.user.id = token.id
+        session.user.role = token.role
+        session.user.yearOfStudy = token.yearOfStudy
+        session.user.specialty = token.specialty
+        session.user.university = token.university
+        // avatarUrl is NOT stored in the JWT — fetch from /api/user/me instead
       }
       return session
     },

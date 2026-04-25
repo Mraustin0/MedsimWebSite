@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { Scenario, DifficultyLevel } from '@/types'
@@ -8,6 +8,10 @@ import ScenarioCard from '@/components/ScenarioCard'
 import { cn } from '@/components/ui/cn'
 import { useToast } from '@/components/ui/Toast'
 import { useConfirm } from '@/components/ui/ConfirmDialog'
+import NotificationBell from '@/components/NotificationBell'
+import OnboardingTour from '@/components/OnboardingTour'
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary'
+import { DashboardSkeleton, ScenarioCardSkeleton, PerformanceSkeleton } from '@/components/ui/Skeleton'
 
 const FILTERS: { label: string; value: DifficultyLevel | 'all' }[] = [
   { label: 'ทั้งหมด', value: 'all' },
@@ -34,7 +38,32 @@ export default function DashboardClient({ scenarios }: Props) {
   const { data: session } = useSession()
   const [activeView, setActiveView] = useState<ViewType>('Dashboard')
   const [filter, setFilter] = useState<DifficultyLevel | 'all'>('all')
+  const [headerSearch, setHeaderSearch] = useState('')
+  const [showHeaderResults, setShowHeaderResults] = useState(false)
+  const headerSearchRef = useRef<HTMLDivElement>(null)
   const confirm = useConfirm()
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (headerSearchRef.current && !headerSearchRef.current.contains(e.target as Node)) {
+        setShowHeaderResults(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const headerResults = headerSearch.trim().length > 0
+    ? scenarios.filter((s) => {
+        const q = headerSearch.toLowerCase()
+        return (
+          s.name.toLowerCase().includes(q) ||
+          s.chiefComplaint.toLowerCase().includes(q) ||
+          s.description.toLowerCase().includes(q)
+        )
+      })
+    : []
 
   const userName = session?.user?.name || 'Medical Student'
   const userRole = 'Medical Student'
@@ -55,22 +84,26 @@ export default function DashboardClient({ scenarios }: Props) {
     : scenarios.filter((s) => s.difficulty === filter)
 
   const renderContent = () => {
+    const wrap = (node: React.ReactNode, section: string) => (
+      <ErrorBoundary section={section}>{node}</ErrorBoundary>
+    )
     switch (activeView) {
       case 'Dashboard':
-        return <DashboardView scenarios={scenarios} setActiveView={setActiveView} />
+        return wrap(<DashboardView scenarios={scenarios} setActiveView={setActiveView} />, 'Dashboard')
       case 'Simulations':
-        return <SimulationsView scenarios={filtered} filter={filter} setFilter={setFilter} />
+        return wrap(<SimulationsView scenarios={filtered} filter={filter} setFilter={setFilter} />, 'Simulations')
       case 'Library':
-        return <LibraryView />
+        return wrap(<LibraryView />, 'Library')
       case 'Performance':
-        return <PerformanceView />
+        return wrap(<PerformanceView setActiveView={setActiveView} />, 'Performance')
       default:
-        return <DashboardView scenarios={scenarios} setActiveView={setActiveView} />
+        return wrap(<DashboardView scenarios={scenarios} setActiveView={setActiveView} />, 'Dashboard')
     }
   }
 
   return (
     <div className="min-h-screen bg-surface selection:bg-primary-container selection:text-on-primary-container">
+      <OnboardingTour />
       {/* ===== SIDEBAR: Hidden on mobile, flex on desktop ===== */}
       <aside className="fixed left-0 top-0 h-screen w-[72px] hover:w-64 bg-surface-container-lowest hidden lg:flex flex-col py-6 gap-y-8 z-50 border-r border-outline-variant/10 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] group/sidebar overflow-hidden premium-shadow">
         
@@ -139,21 +172,76 @@ export default function DashboardClient({ scenarios }: Props) {
         {/* TOP APP BAR: Fixed Profile Color & Design */}
         <header className="sticky top-0 z-40 w-full bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 flex justify-between items-center px-4 py-3 lg:px-10 lg:py-4">
           <div className="hidden lg:flex items-center gap-4 flex-1 max-w-xl">
-            <div className="relative w-full group">
-              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 text-xl transition-colors group-focus-within:text-primary">search</span>
+            <div ref={headerSearchRef} className="relative w-full group">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 text-xl transition-colors group-focus-within:text-primary z-10">search</span>
               <input
-                className="w-full pl-12 pr-6 py-2.5 bg-surface-container/40 border border-transparent rounded-2xl text-sm focus:ring-4 focus:ring-primary/5 focus:border-primary/20 focus:bg-white transition-all outline-none placeholder:text-on-surface-variant/30"
+                className="w-full pl-12 pr-10 py-2.5 bg-surface-container/40 border border-transparent rounded-2xl text-sm focus:ring-4 focus:ring-primary/5 focus:border-primary/20 focus:bg-white transition-all outline-none placeholder:text-on-surface-variant/30"
                 placeholder="Search cases..."
                 type="text"
+                value={headerSearch}
+                onChange={(e) => { setHeaderSearch(e.target.value); setShowHeaderResults(true) }}
+                onFocus={() => setShowHeaderResults(true)}
               />
+              {headerSearch && (
+                <button
+                  onClick={() => { setHeaderSearch(''); setShowHeaderResults(false) }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/40 hover:text-on-surface transition-colors z-10"
+                >
+                  <span className="material-symbols-outlined !text-lg">close</span>
+                </button>
+              )}
+
+              {/* Dropdown results */}
+              {showHeaderResults && headerResults.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-surface-container-lowest rounded-2xl premium-shadow border border-outline-variant/10 overflow-hidden z-50 animate-fade-in">
+                  {headerResults.slice(0, 5).map((s) => (
+                    <button
+                      key={s.id}
+                      onClick={() => { router.push(`/session/${s.id}`); setShowHeaderResults(false); setHeaderSearch('') }}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-container transition-all text-left group/item border-b border-outline-variant/5 last:border-0"
+                    >
+                      <div className="w-9 h-9 rounded-xl bg-surface-container flex items-center justify-center flex-shrink-0 text-on-surface-variant group-hover/item:bg-primary group-hover/item:text-on-primary transition-all">
+                        <span className="material-symbols-outlined !text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>
+                          {s.gender === 'male' ? 'man' : 'woman'}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-on-surface truncate">{s.name}</p>
+                        <p className="text-xs text-on-surface-variant/60 truncate">{s.chiefComplaint} · {s.age} ปี</p>
+                      </div>
+                      <span className={cn(
+                        'text-[10px] font-black px-2 py-0.5 rounded-full flex-shrink-0',
+                        s.difficulty === 'hard' ? 'bg-error-container text-on-error-container' :
+                        s.difficulty === 'medium' ? 'bg-tertiary-container text-on-tertiary-container' :
+                        'bg-primary-container text-on-primary-container'
+                      )}>
+                        {s.difficulty === 'hard' ? 'ยาก' : s.difficulty === 'medium' ? 'ปานกลาง' : 'ง่าย'}
+                      </span>
+                    </button>
+                  ))}
+                  {headerResults.length === 0 && (
+                    <div className="px-4 py-6 text-center text-sm text-on-surface-variant/50 font-medium">
+                      ไม่พบ scenario ที่ตรงกัน
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* No results message */}
+              {showHeaderResults && headerSearch.trim().length > 0 && headerResults.length === 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-surface-container-lowest rounded-2xl premium-shadow border border-outline-variant/10 z-50 animate-fade-in">
+                  <div className="px-4 py-6 text-center text-sm text-on-surface-variant/50 font-medium">
+                    ไม่พบ scenario ที่ตรงกัน
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
           <div className="flex items-center gap-6 lg:gap-8">
-            <button className="hidden lg:block relative p-2.5 text-on-surface-variant hover:bg-surface-container rounded-2xl transition-all active:scale-95 group">
-              <span className="material-symbols-outlined !text-2xl">notifications</span>
-              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-error rounded-full border-2 border-surface"></span>
-            </button>
+            <div className="hidden lg:block">
+              <NotificationBell />
+            </div>
 
             {/* PROFILE BUG FIX: Clean, High-Contrast Design */}
             <div className="flex items-center gap-4 pl-3 lg:pl-6 lg:border-l border-outline-variant/10" onClick={handleProfileClick} style={{ cursor: 'pointer' }}>
@@ -179,35 +267,38 @@ export default function DashboardClient({ scenarios }: Props) {
         </main>
 
         {/* Mobile Bottom Nav */}
-        <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden glass-nav border-t border-outline-variant/15 pb-safe">
-          <div className="flex items-center justify-around py-3 px-4">
-            {NAV_ITEMS.map((item) => (
-              <button
-                key={item.label}
-                onClick={() => setActiveView(item.label)}
-                className={cn(
-                  'flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all active:scale-90',
-                  activeView === item.label
-                    ? 'text-primary font-bold'
-                    : 'text-on-surface-variant/60'
-                )}
-              >
-                <span className={cn(
-                  "material-symbols-outlined !text-2xl",
-                  activeView === item.label && "!fill-1"
-                )}>{item.icon}</span>
-                <span className="text-[10px] font-black uppercase tracking-[0.15em]">
-                  {item.label}
-                </span>
-              </button>
-            ))}
-            <button
-              onClick={() => router.push('/profile')}
-              className="flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-all active:scale-90 text-on-surface-variant/60"
-            >
-              <span className="material-symbols-outlined !text-2xl">person</span>
-              <span className="text-[10px] font-black uppercase tracking-[0.15em]">Profile</span>
-            </button>
+        <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-surface/95 backdrop-blur-xl border-t border-outline-variant/10">
+          <div className="flex items-center justify-around pt-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] px-2">
+            {(NAV_ITEMS as { icon: string; label: string }[]).concat([{ icon: 'person', label: 'Profile' }]).map((item) => {
+              const isProfile = item.label === 'Profile'
+              const active = !isProfile && activeView === (item.label as ViewType)
+              return (
+                <button
+                  key={item.label}
+                  onClick={() => isProfile ? router.push('/profile') : setActiveView(item.label as ViewType)}
+                  className="flex flex-col items-center gap-0.5 px-2 py-1 min-w-[56px] active:scale-90 transition-all"
+                >
+                  <div className={cn(
+                    'w-12 h-7 rounded-full flex items-center justify-center transition-all duration-200',
+                    active ? 'bg-primary-container' : 'bg-transparent'
+                  )}>
+                    <span
+                      className={cn(
+                        'material-symbols-outlined !text-xl transition-all',
+                        active ? 'text-primary' : 'text-on-surface-variant/50'
+                      )}
+                      style={active ? { fontVariationSettings: "'FILL' 1" } : {}}
+                    >
+                      {item.icon}
+                    </span>
+                  </div>
+                  <span className={cn(
+                    'text-[9px] font-black uppercase tracking-[0.1em] transition-colors',
+                    active ? 'text-primary' : 'text-on-surface-variant/40'
+                  )}>{item.label}</span>
+                </button>
+              )
+            })}
           </div>
         </nav>
 
@@ -275,11 +366,14 @@ function DashboardView({ scenarios, setActiveView }: { scenarios: Scenario[]; se
 
         <div className="flex items-center gap-5 bg-surface-container-lowest p-4 lg:p-6 rounded-2xl lg:rounded-[2.5rem] premium-shadow-md border border-outline-variant/5 group hover:scale-105 transition-transform duration-500">
           <div className="w-10 h-10 lg:w-14 lg:h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary transition-colors group-hover:bg-primary group-hover:text-on-primary">
-            <span className="material-symbols-outlined !text-3xl" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
+            <span className="material-symbols-outlined !text-3xl animate-flicker" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
           </div>
           <div>
             <p className="text-[10px] font-black text-on-surface-variant/40 uppercase tracking-widest mb-1">Daily Streak</p>
-            <p className="text-3xl font-black text-on-surface tracking-tight">{stats?.streak ?? 0} Days</p>
+            {stats === null
+              ? <div className="skeleton h-8 w-20 mt-1" />
+              : <p className="text-3xl font-black text-on-surface tracking-tight">{stats.streak} Days</p>
+            }
           </div>
         </div>
       </section>
@@ -367,7 +461,7 @@ function DashboardView({ scenarios, setActiveView }: { scenarios: Scenario[]; se
               >
                 <div className="relative">
                   <div className="w-12 h-12 lg:w-16 lg:h-16 rounded-2xl lg:rounded-3xl bg-surface-container flex items-center justify-center text-3xl shadow-inner text-on-surface-variant overflow-hidden">
-                    <span className="text-2xl">{s.gender === 'male' ? '👨' : '👩'}</span>
+                    <span className="material-symbols-outlined !text-3xl text-on-surface-variant" style={{ fontVariationSettings: "'FILL' 1" }}>{s.gender === 'male' ? 'man' : 'woman'}</span>
                   </div>
                   <div className={cn("absolute -bottom-2 -right-2 w-8 h-8 rounded-2xl border-4 border-surface flex items-center justify-center shadow-md",
                     s.difficulty === 'hard' ? 'bg-error-container' : s.difficulty === 'medium' ? 'bg-tertiary-container' : 'bg-primary-container'
@@ -408,14 +502,20 @@ function DashboardView({ scenarios, setActiveView }: { scenarios: Scenario[]; se
                 <span className="material-symbols-outlined text-primary !text-3xl">psychology</span>
                 <div>
                   <p className="text-[10px] font-black text-on-surface-variant/40 uppercase tracking-widest mb-1">Avg. Accuracy</p>
-                  <p className="text-2xl font-black text-on-surface tracking-tight">{stats?.avgScore ?? 0}%</p>
+                  {stats === null
+                    ? <div className="skeleton h-7 w-16 mt-1" />
+                    : <p className="text-2xl font-black text-on-surface tracking-tight">{stats.avgScore}%</p>
+                  }
                 </div>
               </div>
               <div className="bg-surface-container-lowest p-4 lg:p-6 rounded-2xl lg:rounded-[2rem] space-y-3 premium-shadow-md border border-outline-variant/5">
                 <span className="material-symbols-outlined text-tertiary !text-3xl">avg_pace</span>
                 <div>
                   <p className="text-[10px] font-black text-on-surface-variant/40 uppercase tracking-widest mb-1">Avg. Time</p>
-                  <p className="text-2xl font-black text-on-surface tracking-tight">{avgMins}m {avgSecs}s</p>
+                  {stats === null
+                    ? <div className="skeleton h-7 w-20 mt-1" />
+                    : <p className="text-2xl font-black text-on-surface tracking-tight">{avgMins}m {avgSecs}s</p>
+                  }
                 </div>
               </div>
             </div>
@@ -426,20 +526,32 @@ function DashboardView({ scenarios, setActiveView }: { scenarios: Scenario[]; se
                 <span className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline cursor-pointer">Report</span>
               </div>
               <div className="space-y-6">
-                {[
-                  { label: 'Diagnosis', score: diagnosisScore },
-                  { label: 'Patient Care', score: patientCareScore },
-                ].map(({ label, score }) => (
-                  <div key={label}>
-                    <div className="flex justify-between text-[11px] font-black mb-2 uppercase tracking-widest">
-                      <span className="text-on-surface-variant/50">{label}</span>
-                      <span className={cn(score >= 70 ? 'text-primary' : score >= 40 ? 'text-tertiary' : 'text-error')}>{score}%</span>
+                {stats === null ? (
+                  [0, 1].map((i) => (
+                    <div key={i} className="space-y-2">
+                      <div className="flex justify-between items-center mb-2">
+                        <div className="skeleton h-3 w-24" />
+                        <div className="skeleton h-3 w-8" />
+                      </div>
+                      <div className="skeleton h-2.5 w-full" />
                     </div>
-                    <div className="w-full h-2.5 bg-surface-container rounded-full overflow-hidden p-0.5">
-                      <div className={cn('h-full rounded-full shadow-sm transition-all duration-1000', score >= 70 ? 'bg-primary' : score >= 40 ? 'bg-tertiary' : 'bg-error')} style={{ width: `${score}%` }}></div>
+                  ))
+                ) : (
+                  [
+                    { label: 'Diagnosis', score: diagnosisScore },
+                    { label: 'Patient Care', score: patientCareScore },
+                  ].map(({ label, score }) => (
+                    <div key={label}>
+                      <div className="flex justify-between text-[11px] font-black mb-2 uppercase tracking-widest">
+                        <span className="text-on-surface-variant/50">{label}</span>
+                        <span className={cn(score >= 70 ? 'text-primary' : score >= 40 ? 'text-tertiary' : 'text-error')}>{score}%</span>
+                      </div>
+                      <div className="w-full h-2.5 bg-surface-container rounded-full overflow-hidden p-0.5">
+                        <div className={cn('h-full rounded-full shadow-sm transition-all duration-1000', score >= 70 ? 'bg-primary' : score >= 40 ? 'bg-tertiary' : 'bg-error')} style={{ width: `${score}%` }} />
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -450,6 +562,18 @@ function DashboardView({ scenarios, setActiveView }: { scenarios: Scenario[]; se
 }
 
 function SimulationsView({ scenarios, filter, setFilter }: { scenarios: Scenario[], filter: string, setFilter: (f: DifficultyLevel | 'all') => void }) {
+  const [search, setSearch] = useState('')
+
+  const displayed = scenarios.filter((s) => {
+    if (!search.trim()) return true
+    const q = search.toLowerCase()
+    return (
+      s.name.toLowerCase().includes(q) ||
+      s.chiefComplaint.toLowerCase().includes(q) ||
+      s.description.toLowerCase().includes(q)
+    )
+  })
+
   return (
     <div className="p-4 lg:p-10 space-y-6 lg:space-y-10 animate-fade-in">
       <header className="space-y-6">
@@ -477,18 +601,43 @@ function SimulationsView({ scenarios, filter, setFilter }: { scenarios: Scenario
             ))}
           </div>
         </div>
+
+        {/* Search bar — full width */}
+        <div className="relative group">
+          <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/40 transition-colors group-focus-within:text-primary !text-xl">search</span>
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="ค้นหาตาม ชื่อผู้ป่วย, อาการ, คำอธิบาย..."
+            className="w-full pl-12 pr-10 py-3.5 bg-surface-container-lowest border border-outline-variant/10 rounded-2xl text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+          />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/40 hover:text-on-surface transition-colors"
+            >
+              <span className="material-symbols-outlined !text-lg">close</span>
+            </button>
+          )}
+        </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8">
-        {scenarios.map((scenario) => (
-          <div key={scenario.id} className="animate-fade-in">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8 items-stretch">
+        {displayed.map((scenario) => (
+          <div key={scenario.id} className="animate-fade-in h-full">
             <ScenarioCard scenario={scenario} />
           </div>
         ))}
-        {scenarios.length === 0 && (
-          <div className="col-span-full py-32 flex flex-col items-center justify-center bg-surface-container/20 rounded-[3rem] border-2 border-dashed border-outline-variant/20">
-            <span className="material-symbols-outlined !text-6xl text-on-surface-variant/20 mb-4">search_off</span>
-            <p className="text-xl font-black text-on-surface-variant/40 uppercase tracking-[0.2em]">No scenarios found</p>
+        {displayed.length === 0 && (
+          <div className="col-span-full py-32 flex flex-col items-center justify-center bg-surface-container/20 rounded-[3rem] border-2 border-dashed border-outline-variant/20 space-y-4">
+            <span className="material-symbols-outlined !text-6xl text-on-surface-variant/20">search_off</span>
+            <div className="text-center space-y-1">
+              <p className="text-xl font-black text-on-surface-variant/40 uppercase tracking-[0.2em]">No scenarios found</p>
+              {search && (
+                <button onClick={() => setSearch('')} className="text-sm text-primary font-bold hover:underline">ล้างการค้นหา</button>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -622,7 +771,7 @@ const OLDCARTS_LABELS: { key: keyof NonNullable<SessionHistory['scores']>; label
   { key: 'severity', label: 'Severity' },
 ]
 
-function PerformanceView() {
+function PerformanceView({ setActiveView }: { setActiveView: (v: ViewType) => void }) {
   const [history, setHistory] = useState<SessionHistory[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -647,13 +796,7 @@ function PerformanceView() {
     ? Math.round(withFeedback.reduce((sum, s) => sum + s.scores!.overall, 0) / withFeedback.length)
     : 0
 
-  if (loading) {
-    return (
-      <div className="p-10 flex items-center justify-center min-h-[60vh]">
-        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
+  if (loading) return <PerformanceSkeleton />
 
   if (history.length === 0) {
     return (
@@ -665,6 +808,13 @@ function PerformanceView() {
           <h2 className="text-3xl font-black tracking-tight">No Data Yet</h2>
           <p className="text-on-surface-variant max-w-sm font-medium">Complete a simulation to see your performance analytics here.</p>
         </div>
+        <button
+          onClick={() => setActiveView('Simulations')}
+          className="cta-gradient px-8 py-4 rounded-2xl text-on-primary font-black uppercase tracking-[0.15em] text-xs shadow-lg shadow-primary/20 flex items-center gap-2 active:scale-95 transition-all"
+        >
+          <span className="material-symbols-outlined !text-lg">play_circle</span>
+          Start a Simulation
+        </button>
       </div>
     )
   }
@@ -741,6 +891,14 @@ function PerformanceView() {
           </div>
         </div>
 
+        {/* Score Trend Chart */}
+        {withFeedback.length >= 2 && (
+          <div className="col-span-12 bg-surface-container-lowest rounded-[3rem] p-5 lg:p-10 premium-shadow border border-outline-variant/5">
+            <h3 className="text-xl lg:text-2xl font-black text-on-surface tracking-tight mb-6">Score Trend</h3>
+            <ScoreTrendChart sessions={withFeedback.slice(0, 10).reverse()} />
+          </div>
+        )}
+
         {/* Session History */}
         <div className="col-span-12 space-y-4">
           <h3 className="text-xl lg:text-2xl font-black text-on-surface tracking-tight px-2">Recent Sessions</h3>
@@ -776,6 +934,57 @@ function PerformanceView() {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+/* ── Score trend line chart (pure SVG, no lib needed) ── */
+function ScoreTrendChart({ sessions }: { sessions: SessionHistory[] }) {
+  const W = 600, H = 160, PAD = 24
+  const scores = sessions.map((s) => s.scores?.overall ?? 0)
+  const min = Math.max(0, Math.min(...scores) - 10)
+  const max = Math.min(100, Math.max(...scores) + 10)
+  const xStep = (W - PAD * 2) / Math.max(scores.length - 1, 1)
+
+  const toX = (i: number) => PAD + i * xStep
+  const toY = (v: number) => H - PAD - ((v - min) / (max - min || 1)) * (H - PAD * 2)
+
+  const polyline = scores.map((v, i) => `${toX(i)},${toY(v)}`).join(' ')
+  const area = [
+    `M ${toX(0)},${H - PAD}`,
+    ...scores.map((v, i) => `L ${toX(i)},${toY(v)}`),
+    `L ${toX(scores.length - 1)},${H - PAD}`,
+    'Z',
+  ].join(' ')
+
+  return (
+    <div className="w-full overflow-x-auto">
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minWidth: 280 }}>
+        <defs>
+          <linearGradient id="trendGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#006948" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#006948" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        {[0, 25, 50, 75, 100].map((v) => (
+          <line key={v} x1={PAD} y1={toY(v)} x2={W - PAD} y2={toY(v)}
+            stroke="#ABADAE" strokeWidth="0.5" strokeDasharray="4,4" />
+        ))}
+        <path d={area} fill="url(#trendGrad)" />
+        <polyline points={polyline} fill="none" stroke="#006948" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+        {scores.map((v, i) => (
+          <circle key={i} cx={toX(i)} cy={toY(v)} r="4" fill="#006948" />
+        ))}
+        {scores.map((v, i) => (
+          <text key={i} x={toX(i)} y={toY(v) - 10} textAnchor="middle" fontSize="9" fontWeight="800" fill="#006948">{v}%</text>
+        ))}
+        {sessions.map((s, i) => {
+          const d = new Date(s.startedAt).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })
+          return (
+            <text key={i} x={toX(i)} y={H - 4} textAnchor="middle" fontSize="8" fontWeight="600" fill="#595C5D" opacity="0.6">{d}</text>
+          )
+        })}
+      </svg>
     </div>
   )
 }
