@@ -25,6 +25,7 @@ export function useSession({ scenario, onMessageSent }: UseSessionOptions) {
   const [isEndingSession, setIsEndingSession] = useState(false)
   const [feedback, setFeedback] = useState<Feedback | null>(null)
   const [chatError, setChatError] = useState<string | null>(null)
+  const [hintsUsedCount, setHintsUsedCount] = useState(0)
   const startTimeRef = useRef<number>(Date.now())
   const dbSessionIdRef = useRef<string | null>(null)
 
@@ -152,6 +153,7 @@ export function useSession({ scenario, onMessageSent }: UseSessionOptions) {
           transcript,
           scenarioId: scenario.chiefComplaint,
           durationSeconds: Math.round((Date.now() - startTimeRef.current) / 1000),
+          hintsUsed: hintsUsedCount,
         }),
       })
       const fb = await res.json()
@@ -164,12 +166,17 @@ export function useSession({ scenario, onMessageSent }: UseSessionOptions) {
     }
   }, [sessionEnded, messages, scenario.chiefComplaint])
 
+  const onHintUsed = useCallback(() => {
+    setHintsUsedCount((c) => c + 1)
+  }, [])
+
   const resetSession = useCallback(() => {
     setFeedback(null)
     setSessionEnded(false)
     setIsEndingSession(false)
     setMessages([])
     setChatError(null)
+    setHintsUsedCount(0)
     startTimeRef.current = Date.now()
     dbSessionIdRef.current = null
   }, [])
@@ -187,6 +194,8 @@ export function useSession({ scenario, onMessageSent }: UseSessionOptions) {
     chatError,
     hints: HINTS,
     userQuestionCount,
+    hintsUsedCount,
+    onHintUsed,
     initSession,
     sendMessage,
     endSession,
